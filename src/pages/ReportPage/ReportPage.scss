@@ -1,0 +1,15 @@
+.no-data-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  text-align: center;
+  padding: 20px;
+}
+
+.message-color {
+  color: #999;
+}
