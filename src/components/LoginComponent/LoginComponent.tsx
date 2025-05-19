@@ -3,12 +3,13 @@ import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import "./LoginComponent.scss";
 import { LoginInterface } from "../../interfaces/LoginInterface";
 import { loginUser } from "../../services/UserService";
-import { errorResponse } from "../../util/const";
 import { useAuth } from "../../context/Auth/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { getLoginValidationSchema } from "../../validations/LoginValidationSchema";
+import { toastErrorNotification } from "../../util/toastNotification";
+import { handleApiError } from "../../util/const";
 
 const LoginComponent = () => {
   const schema = getLoginValidationSchema();
@@ -30,7 +31,7 @@ const LoginComponent = () => {
       login(result.data.data.jwt);
       navigate("/");
     } catch (e) {
-      errorResponse(e);
+      toastErrorNotification(handleApiError(e));
     }
   };
 

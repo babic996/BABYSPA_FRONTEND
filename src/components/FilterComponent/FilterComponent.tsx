@@ -21,6 +21,8 @@ import { StatusInterface } from "../../interfaces/StatusInterface";
 import { AiOutlineArrowRight } from "react-icons/ai";
 import { groupDataReportType } from "../../util/const";
 import FilterButton from "../ButtonComponents/FilterButton";
+import { GiftCardInterface } from "../../interfaces/GiftCardInterface";
+import { getGiftCardList } from "../../services/GiftCardService";
 const { RangePicker } = DatePicker;
 
 interface FilterComponentProps {
@@ -36,6 +38,7 @@ interface FilterComponentProps {
   showPaymentTypeSelect?: boolean;
   showArrangementIdSearch?: boolean;
   showGroupReportData?: boolean;
+  showGiftCards?: boolean;
   statusTypeCode?: string;
 }
 
@@ -52,6 +55,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
   showPaymentTypeSelect = false,
   showGroupReportData = false,
   showArrangementIdSearch = false,
+  showGiftCards = false,
   statusTypeCode,
 }) => {
   const { filter, setFilter, searchText, setSearchText, onResetFilter } =
@@ -62,13 +66,23 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
   >([]);
   const [paymentType, setPaymentType] = useState<PaymentTypeInterface[]>([]);
   const [statuses, setStatuses] = useState<StatusInterface[]>([]);
+  const [giftCards, setGiftCards] = useState<GiftCardInterface[]>([]);
 
   useEffect(() => {
-    getBabiesList().then((res) => setBabies(res));
-    getServicePackagesList().then((res) => setServicePackages(res));
-    getPaymentTypeList().then((res) => setPaymentType(res));
+    if (showSelectBebies) {
+      getBabiesList().then((res) => setBabies(res));
+    }
+    if (showSelectServicePackages) {
+      getServicePackagesList().then((res) => setServicePackages(res));
+    }
+    if (showPaymentTypeSelect) {
+      getPaymentTypeList().then((res) => setPaymentType(res));
+    }
     if (statusTypeCode) {
       getStatusList(statusTypeCode).then((res) => setStatuses(res));
+    }
+    if (showGiftCards) {
+      getGiftCardList(null, null).then((res) => setGiftCards(res));
     }
   }, [showGroupReportData]);
 
@@ -346,6 +360,39 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
               style={{ flex: 1 }}
             />
           </div>
+        </Col>
+      )}
+      {showGiftCards && (
+        <Col xs={24} sm={12} md={8} lg={6} xl={4}>
+          <Select
+            placeholder="Odaberi poklon karticu"
+            showSearch
+            allowClear
+            status="warning"
+            value={filter.giftCardId}
+            style={{ width: "100%" }}
+            filterOption={(input, option) => {
+              if (option && option.children) {
+                const childrenString = Array.isArray(option.children)
+                  ? option.children.join("")
+                  : option.children;
+                return (
+                  typeof childrenString === "string" &&
+                  childrenString.toLowerCase().includes(input.toLowerCase())
+                );
+              }
+              return false;
+            }}
+            onChange={(value) =>
+              setFilter((prev) => ({ ...prev, giftCardId: value }))
+            }
+          >
+            {giftCards?.map((x) => (
+              <Select.Option key={x.giftCardId} value={x.giftCardId}>
+                {x.serialNumber}
+              </Select.Option>
+            ))}
+          </Select>
         </Col>
       )}
       <Col xs={24} sm={12} md={8} lg={6} xl={4}>

@@ -9,33 +9,27 @@ import {
   FaSignOutAlt,
   FaUserPlus,
   FaUserEdit,
+  FaUserShield,
+  FaCog,
 } from "react-icons/fa";
 import { useEffect, useState } from "react";
-import {
-  Layout as AntLayout,
-  Button,
-  Checkbox,
-  Col,
-  Form,
-  Input,
-  Menu,
-  Modal,
-  Row,
-  Select,
-} from "antd";
+import { Layout as AntLayout, Menu, Modal } from "antd";
 import "./Layout.scss";
 import { useAuth } from "../../context/Auth/useAuth";
 import useMediaQuery from "../../hooks/useMediaQuery";
-import { errorResponse, ROLES } from "../../util/const";
-import { Controller, SubmitHandler, useForm } from "react-hook-form";
+import { handleApiError, ROLES } from "../../util/const";
+import { useForm } from "react-hook-form";
 import { RegisterOrUpdateUserInterface } from "../../interfaces/RegisterOrUpdateUserInterface";
-import { toastSuccessNotification } from "../../util/toastNotification";
+import { toastErrorNotification } from "../../util/toastNotification";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { getUserValidationSchema } from "../../validations/RegisterOrUpdateUserValidationSchema";
-import { editUser, registerUser } from "../../services/UserService";
-import { convertRegisterOrUpdateUserToRegister } from "../../mappers/UserMapper";
+import { getUsersInfo } from "../../services/UserService";
+import { RoleInterface } from "../../interfaces/RoleInterface";
+import { getRoles } from "../../services/RoleService";
+import { UserInfoInterface } from "../../interfaces/UserInterface";
+import AssignRoleModalComponent from "../AssignRoleModalComponent/AssignRoleModalComponent";
+import CreateAndEditUserComponent from "../CreateAndEditUserComponent/CreateAndEditUserComponent";
 const { Sider, Content } = AntLayout;
-const { Option } = Select;
 
 const Layout = () => {
   const [collapsed, setCollapsed] = useState<boolean>(false);
@@ -45,10 +39,16 @@ const Layout = () => {
   const { logoutUser, userRoles, getUserInfo } = useAuth();
   const [hasAccess, setHasAccess] = useState<boolean>(false);
   const [isUserModalOpen, setIsUserModalOpen] = useState<boolean>(false);
-  // const [isAssignRoleModalOpen, setIsAssignRoleModalOpen] =
-  //   useState<boolean>(false);
+  const [isAssignRoleModalOpen, setIsAssignRoleModalOpen] =
+    useState<boolean>(false);
   const [isEditUser, setIsEditUser] = useState<boolean>(false);
   const schema = getUserValidationSchema(isEditUser);
+  const [roles, setRoles] = useState<RoleInterface[]>([]);
+  const [users, setUsers] = useState<UserInfoInterface[]>([]);
+  const [selectedUser, setSelectedUser] = useState<UserInfoInterface | null>(
+    null
+  );
+  const [selectedRoles, setSelectedRoles] = useState<number[]>([]);
 
   const {
     control,
@@ -81,9 +81,9 @@ const Layout = () => {
     setIsUserModalOpen(true);
   };
 
-  // const handleOpenAssignRoleModal = () => {
-  //   setIsAssignRoleModalOpen(true);
-  // };
+  const handleAssignRoleModal = () => {
+    setIsAssignRoleModalOpen((prev) => !prev);
+  };
 
   const handleUserModalClose = () => {
     reset({
@@ -103,6 +103,24 @@ const Layout = () => {
       )
     );
   }, [userRoles]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [usersRes, rolesRes] = await Promise.all([
+          getUsersInfo(["ROLE_ADMIN", "ROLE_SUPER_ADMIN"]),
+          getRoles(),
+        ]);
+
+        setUsers(usersRes);
+        setRoles(rolesRes);
+      } catch (e) {
+        toastErrorNotification(handleApiError(e));
+      }
+    };
+
+    fetchData();
+  }, [isAssignRoleModalOpen]);
 
   const menuItems = [
     {
@@ -147,6 +165,11 @@ const Layout = () => {
           label: <a onClick={handleLogout}>Odjavi se</a>,
           icon: <FaSignOutAlt />,
         },
+        hasAccess && {
+          key: "settings",
+          label: <NavLink to="/settings">Podešavanja</NavLink>,
+          icon: <FaCog />,
+        },
         {
           key: "edit-user",
           label: <a onClick={() => handleOpenUserModal(true)}>Uredi nalog</a>,
@@ -159,33 +182,14 @@ const Layout = () => {
           ),
           icon: <FaUserPlus />,
         },
-        // hasAccess && {
-        //   key: "assign-role",
-        //   label: <a onClick={handleOpenAssignRoleModal}>Dodijeli uloge</a>,
-        //   icon: <FaUserShield />,
-        // },
+        hasAccess && {
+          key: "assign-role",
+          label: <a onClick={handleAssignRoleModal}>Dodijeli uloge</a>,
+          icon: <FaUserShield />,
+        },
       ].filter(Boolean),
     },
   ];
-
-  const onSubmit: SubmitHandler<RegisterOrUpdateUserInterface> = async (
-    data
-  ) => {
-    try {
-      if (isEditUser) {
-        await editUser(data);
-        setIsUserModalOpen(false);
-        toastSuccessNotification("Ažurirano!");
-        handleLogout();
-      } else {
-        await registerUser(convertRegisterOrUpdateUserToRegister(data));
-        setIsUserModalOpen(false);
-        toastSuccessNotification("Sačuvano!");
-      }
-    } catch (e) {
-      errorResponse(e);
-    }
-  };
 
   //------------------RENDER------------------
 
@@ -200,184 +204,34 @@ const Layout = () => {
         width={isMobile ? 300 : 600}
         centered
       >
-        <Form onFinish={handleSubmit(onSubmit)} layout="vertical">
-          <Form.Item
-            label="Ime"
-            validateStatus={errors.firstName ? "error" : ""}
-            help={errors.firstName?.message}
-            style={{ marginBottom: 8 }}
-          >
-            <Controller
-              name="firstName"
-              control={control}
-              render={({ field }) => <Input {...field} />}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Prezime"
-            validateStatus={errors.lastName ? "error" : ""}
-            help={errors.lastName?.message}
-            style={{ marginBottom: 8 }}
-          >
-            <Controller
-              name="lastName"
-              control={control}
-              render={({ field }) => (
-                <Input {...field} value={field.value ?? ""} />
-              )}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Email"
-            validateStatus={errors.email ? "error" : ""}
-            help={errors.email?.message}
-            style={{ marginBottom: 8 }}
-          >
-            <Controller
-              name="email"
-              control={control}
-              render={({ field }) => (
-                <Input {...field} value={field.value ?? ""} />
-              )}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Username"
-            validateStatus={errors.username ? "error" : ""}
-            help={errors.username?.message}
-            style={{ marginBottom: 8 }}
-          >
-            <Controller
-              name="username"
-              control={control}
-              render={({ field }) => (
-                <Input {...field} value={field.value ?? ""} />
-              )}
-            />
-          </Form.Item>
-
-          {isEditUser && (
-            <>
-              <Form.Item
-                label="Stari password"
-                validateStatus={errors.oldPassword ? "error" : ""}
-                help={errors.oldPassword?.message}
-                style={{ marginBottom: 8 }}
-              >
-                <Controller
-                  name="oldPassword"
-                  control={control}
-                  render={({ field }) => (
-                    <Input.Password {...field} value={field.value ?? ""} />
-                  )}
-                />
-              </Form.Item>
-              <Form.Item
-                label="Novi password"
-                validateStatus={errors.newPassword ? "error" : ""}
-                help={errors.newPassword?.message}
-                style={{ marginBottom: 8 }}
-              >
-                <Controller
-                  name="newPassword"
-                  control={control}
-                  render={({ field }) => (
-                    <Input.Password {...field} value={field.value ?? ""} />
-                  )}
-                />
-              </Form.Item>
-            </>
-          )}
-
-          {!isEditUser && (
-            <>
-              <Form.Item
-                label="Password"
-                validateStatus={errors.password ? "error" : ""}
-                help={errors.password?.message}
-                style={{ marginBottom: 8 }}
-              >
-                <Controller
-                  name="password"
-                  control={control}
-                  render={({ field }) => (
-                    <Input.Password {...field} value={field.value ?? ""} />
-                  )}
-                />
-              </Form.Item>
-              <Form.Item
-                label="Ponovi password"
-                validateStatus={errors.repeatPassword ? "error" : ""}
-                help={errors.repeatPassword?.message}
-                style={{ marginBottom: 8 }}
-              >
-                <Controller
-                  name="repeatPassword"
-                  control={control}
-                  render={({ field }) => (
-                    <Input.Password {...field} value={field.value ?? ""} />
-                  )}
-                />
-              </Form.Item>
-            </>
-          )}
-
-          <Form.Item
-            style={{ textAlign: "center", marginBottom: 8 }}
-            wrapperCol={{ span: 24 }}
-          >
-            <Button type="primary" htmlType="submit">
-              Sačuvaj
-            </Button>
-          </Form.Item>
-        </Form>
+        <CreateAndEditUserComponent
+          handleLogout={handleLogout}
+          isEditUser={isEditUser}
+          setIsUserModalOpen={setIsUserModalOpen}
+          control={control}
+          handleSubmit={handleSubmit}
+          errors={errors}
+        />
       </Modal>
 
       <Modal
-      // title="Dodijeli uloge"
-      // maskClosable={false}
-      // open={isAssignRoleModalOpen}
-      // footer={null}
-      // // onCancel={handleUserModalClose}
-      // width={isMobile ? 300 : 600}
-      // centered
+        title="Dodijeli uloge"
+        maskClosable={false}
+        open={isAssignRoleModalOpen}
+        footer={null}
+        onCancel={handleAssignRoleModal}
+        width={isMobile ? 300 : 600}
+        centered
       >
-        <div style={{ padding: "20px" }}>
-          {/* Select User */}
-          <Select
-            // value={selectedUser}
-            // onChange={handleUserChange}
-            placeholder="Select a user"
-            style={{ width: "100%", marginBottom: "20px" }}
-          >
-            {[{ id: 1, name: "aco" }].map((user) => (
-              <Option key={user.id} value={user.id}>
-                {user.name}
-              </Option>
-            ))}
-          </Select>
-
-          {/* Display roles if a user is selected */}
-
-          <div>
-            <h3>Assign Roles:</h3>
-            <Checkbox.Group
-            // value={selectedRoles}
-            // onChange={handleRoleChange}
-            >
-              <Row gutter={[16, 16]}>
-                {["admin", "user"].map((role, index) => (
-                  <Col span={12} key={index}>
-                    <Checkbox value={role}>{role}</Checkbox>
-                  </Col>
-                ))}
-              </Row>
-            </Checkbox.Group>
-          </div>
-        </div>
+        <AssignRoleModalComponent
+          roles={roles}
+          selectedRoles={selectedRoles}
+          selectedUser={selectedUser}
+          setIsAssignRoleModalOpen={setIsAssignRoleModalOpen}
+          setSelectedRoles={setSelectedRoles}
+          setSelectedUser={setSelectedUser}
+          users={users}
+        />
       </Modal>
       <AntLayout>
         <Sider

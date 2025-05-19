@@ -21,7 +21,7 @@ import {
   Pagination,
 } from "antd";
 import FilterComponent from "../../components/FilterComponent/FilterComponent";
-import { DEFAULT_PAGE_SIZE, errorResponse } from "../../util/const";
+import { DEFAULT_PAGE_SIZE, handleApiError } from "../../util/const";
 import type { ColumnsType } from "antd/es/table";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { getServicePackageValidationSchema } from "../../validations/ServicePackageValidationSchema";
@@ -29,7 +29,6 @@ import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import InfoModal from "../../components/InfoModal/InfoModal";
 import { useFilter } from "../../context/Filter/useFilter";
-import { AxiosError } from "axios";
 import HeaderButtonsComponent from "../../components/HeaderButtonsComponent/HeaderButtonsComponent";
 import { existsByServicePackageId } from "../../services/ArrangementService";
 import useMediaQuery from "../../hooks/useMediaQuery";
@@ -46,7 +45,7 @@ const ServicePackagePage = () => {
   const [totalElements, setTotalElements] = useState<number>();
   const [isEditServicePackage, setIsEditServicePackage] =
     useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [existsByServicePackage, setExistsByServicePackage] =
     useState<boolean>(false);
   const [currentNote, setCurrentNote] = useState<string>("");
@@ -70,18 +69,22 @@ const ServicePackagePage = () => {
   }, []);
 
   useUpdateEffect(() => {
-    if (filter) {
-      setLoading(true);
-      getServicePackages(cursor - 1, filter)
-        .then((result) => {
-          setServicePackages(result.data.content);
-          setTotalElements(result.data.totalElements);
-        })
-        .catch((e) => {
-          toastErrorNotification(e.response.data.message);
-        })
-        .finally(() => setLoading(false));
-    }
+    if (!filter) return;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const result = await getServicePackages(cursor - 1, filter);
+        setServicePackages(result.data.content);
+        setTotalElements(result.data.totalElements);
+      } catch (e) {
+        toastErrorNotification(handleApiError(e));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [cursor, filter]);
 
   useUpdateEffect(() => {
@@ -104,7 +107,7 @@ const ServicePackagePage = () => {
         setExistsByServicePackage(res);
       }
     } catch (e) {
-      errorResponse(e);
+      toastErrorNotification(handleApiError(e));
     }
     reset({
       servicePackageId: record.servicePackageId,
@@ -127,12 +130,7 @@ const ServicePackagePage = () => {
         setTotalElements(result.data.totalElements);
         toastSuccessNotification("Obrisano!");
       } catch (e) {
-        if (e instanceof AxiosError) {
-          const errorMessage = e.response?.data?.message;
-          toastErrorNotification(errorMessage);
-        } else {
-          toastErrorNotification("Došlo je do greške.");
-        }
+        toastErrorNotification(handleApiError(e));
       } finally {
         setLoading(false);
       }
@@ -201,7 +199,7 @@ const ServicePackagePage = () => {
         toastSuccessNotification("Sačuvano!");
       }
     } catch (e) {
-      errorResponse(e);
+      toastErrorNotification(handleApiError(e));
     } finally {
       setLoading(false);
     }

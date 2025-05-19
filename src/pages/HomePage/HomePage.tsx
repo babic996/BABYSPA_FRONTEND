@@ -38,7 +38,7 @@ import dayjs from "dayjs";
 import FullPageSpiner from "../../components/FullPageSpiner/FullPageSpiner";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { getReservationSchema } from "../../validations/ReservationValidationSchema";
-import { errorResponse, monthNames } from "../../util/const";
+import { handleApiError, monthNames } from "../../util/const";
 import AddButton from "../../components/ButtonComponents/AddButton";
 import useMediaQuery from "../../hooks/useMediaQuery";
 
@@ -68,20 +68,26 @@ const HomePage = () => {
   //------------------LIFECYCLE----------------
 
   useEffect(() => {
-    Promise.all([
-      getArrangementsList(),
-      getStatusList("reservation"),
-      getReservationsList(),
-    ])
-      .then(([arrangementsRes, statusRes, reservationsRes]) => {
+    const fetchData = async () => {
+      try {
+        const [arrangementsRes, statusRes, reservationsRes] = await Promise.all(
+          [
+            getArrangementsList(),
+            getStatusList("reservation"),
+            getReservationsList(),
+          ]
+        );
         setArrangements(arrangementsRes);
         setStatus(statusRes);
         setReservations(reservationsRes);
+      } catch (e) {
+        toastErrorNotification(handleApiError(e));
+      } finally {
         setLoading(false);
-      })
-      .catch((e) => {
-        errorResponse(e);
-      });
+      }
+    };
+
+    fetchData();
   }, []);
 
   //------------------METHODS----------------
@@ -112,7 +118,7 @@ const HomePage = () => {
             })
             .catch((e) => {
               setLoading(false);
-              toastErrorNotification(e.response.data.message);
+              toastErrorNotification(handleApiError(e));
             });
         });
       }
@@ -164,7 +170,7 @@ const HomePage = () => {
         setArrangements(arrangements);
         toastSuccessNotification("Ažurirano!");
       } catch (e) {
-        errorResponse(e);
+        toastErrorNotification(handleApiError(e));
       } finally {
         setLoading(false);
       }
@@ -180,7 +186,7 @@ const HomePage = () => {
         isModalOpen.current = false;
         toastSuccessNotification("Sačuvano!");
       } catch (e) {
-        errorResponse(e);
+        toastErrorNotification(handleApiError(e));
       } finally {
         setLoading(false);
       }

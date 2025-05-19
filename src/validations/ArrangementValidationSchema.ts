@@ -1,6 +1,10 @@
 import * as yup from "yup";
+import { PaymentTypeInterface } from "../interfaces/PaymentTypeInterface";
 
-export const getArrangementValidationSchema = (isUpdate: boolean) => {
+export const getArrangementValidationSchema = (
+  isUpdate: boolean,
+  paymentTypes: PaymentTypeInterface[]
+) => {
   return yup.object().shape({
     arrangementId: yup
       .number()
@@ -30,5 +34,18 @@ export const getArrangementValidationSchema = (isUpdate: boolean) => {
       .required("Paket usluge je obavezan."),
     paymentTypeId: yup.number().nullable().optional(),
     extendDurationDays: yup.number().nullable().optional(),
+    giftCardId: yup
+      .number()
+      .nullable()
+      .when(["paymentTypeId"], {
+        is: (paymentTypeId: number) => {
+          const selectedPayment = paymentTypes.find(
+            (x) => x.paymentTypeId === paymentTypeId
+          );
+          return isUpdate && selectedPayment?.paymentTypeCode === "gift";
+        },
+        then: (schema) => schema.required("Poklon kartica je obavezna."),
+        otherwise: (schema) => schema.nullable(),
+      }),
   });
 };

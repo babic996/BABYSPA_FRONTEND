@@ -1,6 +1,3 @@
-import { AxiosError } from "axios";
-import { toastErrorNotification } from "./toastNotification";
-
 export const DEFAULT_PAGE_SIZE = 10;
 
 export const calendarMessages = {
@@ -16,14 +13,14 @@ export const calendarMessages = {
   event: "Događaj",
 };
 
-export const errorResponse = (e: unknown) => {
-  if (e instanceof AxiosError) {
-    const errorMessage = e.response?.data?.message || "Došlo je do greške.";
-    return toastErrorNotification(errorMessage);
-  } else {
-    return toastErrorNotification("Došlo je do greške.");
-  }
-};
+// export const errorResponse = (e: unknown) => {
+//   if (e instanceof AxiosError) {
+//     const errorMessage = e.response?.data?.message || "Došlo je do greške.";
+//     return toastErrorNotification(errorMessage);
+//   } else {
+//     return toastErrorNotification("Došlo je do greške.");
+//   }
+// };
 
 export const groupDataReportType = [
   { value: "day", name: "Grupiši rezultate po danu" },
@@ -55,3 +52,30 @@ export const monthNames = [
   "Novembar",
   "Decembar",
 ];
+
+export function handleApiError(error: unknown): string {
+  if (typeof error === "object" && error !== null) {
+    const err = error as { response?: { data?: { message?: string } } };
+    return err.response?.data?.message || "Zahtjev nije uspešno izvršen";
+  }
+  return "Došlo je do greške";
+}
+
+export const descriptionRole = (role: string): string => {
+  const roleName = role.replace("ROLE_", "");
+
+  switch (roleName) {
+    case "RESERVATION_MAINTAINER":
+      return "Pregled i upravljanje rezervacijama";
+    case "BABY_MAINTAINER":
+      return "Pregled i upravljanje bebama";
+    case "ARRANGEMENT_MAINTAINER":
+      return "Pregled i upravljanje aranžmanima";
+    case "SERVICE_PACKAGE_MAINTAINER":
+      return "Pregled i upravljanje paketima usluga";
+    case "REPORT_OVERVIEW":
+      return "Pregled izveštaja";
+    default:
+      return roleName;
+  }
+};

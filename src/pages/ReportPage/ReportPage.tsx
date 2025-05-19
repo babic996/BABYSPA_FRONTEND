@@ -23,9 +23,10 @@ import CustomTooltipServicePackageReport from "../../components/CustomTooltipSer
 // import dayjs, { Dayjs } from "dayjs";
 // import type { CheckboxProps } from "antd";
 // import { toastSuccessNotification } from "../../util/toastNotification";
-import { groupDataReportType } from "../../util/const";
+import { groupDataReportType, handleApiError } from "../../util/const";
 import useMediaQuery from "../../hooks/useMediaQuery";
 import useUpdateEffect from "../../hooks/useUpdateEffect";
+import { toastErrorNotification } from "../../util/toastNotification";
 
 const ReportPage = () => {
   const [reservationDailyReport, setReservationDailyReport] = useState<
@@ -51,19 +52,43 @@ const ReportPage = () => {
   }, []);
 
   useUpdateEffect(() => {
-    if (filter?.groupDataType) {
-      if (activeTabKey === "reservationReportTab") {
-        getReservationDailyReports(filter).then((res) => {
+    if (!filter) return;
+
+    const fetchData = async () => {
+      if (!filter?.groupDataType) return;
+
+      try {
+        if (activeTabKey === "reservationReportTab") {
+          const res = await getReservationDailyReports(filter);
           setReservationDailyReport(res);
-        });
-      }
-      if (activeTabKey === "servicePackageReportTab") {
-        getServicePackageDailyReports(filter).then((res) => {
+        }
+
+        if (activeTabKey === "servicePackageReportTab") {
+          const res = await getServicePackageDailyReports(filter);
           setServicePackageDailyReport(res);
-        });
+        }
+      } catch (e) {
+        toastErrorNotification(handleApiError(e));
       }
-    }
+    };
+
+    fetchData();
   }, [filter, activeTabKey]);
+
+  // useUpdateEffect(() => {
+  //   if (filter?.groupDataType) {
+  //     if (activeTabKey === "reservationReportTab") {
+  //       getReservationDailyReports(filter).then((res) => {
+  //         setReservationDailyReport(res);
+  //       });
+  //     }
+  //     if (activeTabKey === "servicePackageReportTab") {
+  //       getServicePackageDailyReports(filter).then((res) => {
+  //         setServicePackageDailyReport(res);
+  //       });
+  //     }
+  //   }
+  // }, [filter, activeTabKey]);
 
   const sumOnXAxesReservations = useMemo(() => {
     if (activeTabKey === "reservationReportTab") {

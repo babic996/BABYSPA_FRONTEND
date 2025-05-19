@@ -9,6 +9,7 @@ export const convertTableArrangementToCreateOrUpdateArrangement = (
   return {
     arrangementId: tableArrangement.arrangementId,
     servicePackageId: tableArrangement.servicePackage.id,
+    giftCardId: tableArrangement?.giftCard?.id,
     babyId: tableArrangement.babyDetails.id,
     statusId: tableArrangement.status.id,
     discountId: tableArrangement?.discount?.id,

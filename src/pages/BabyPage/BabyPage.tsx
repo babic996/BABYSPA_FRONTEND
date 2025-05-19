@@ -24,7 +24,7 @@ import {
   deleteBaby,
 } from "../../services/BabyService";
 import dayjs from "dayjs";
-import { DEFAULT_PAGE_SIZE, errorResponse } from "../../util/const";
+import { DEFAULT_PAGE_SIZE, handleApiError } from "../../util/const";
 import InfoModal from "../../components/InfoModal/InfoModal";
 import {
   toastErrorNotification,
@@ -66,18 +66,22 @@ const BabyPage = () => {
   }, []);
 
   useUpdateEffect(() => {
-    if (filter) {
-      setLoading(true);
-      getBabies(cursor - 1, filter)
-        .then((result) => {
-          setBabies(result.data.content);
-          setTotalElements(result.data.totalElements);
-        })
-        .catch((e) => {
-          toastErrorNotification(e.response.data.message);
-        })
-        .finally(() => setLoading(false));
-    }
+    if (!filter) return;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const result = await getBabies(cursor - 1, filter);
+        setBabies(result.data.content);
+        setTotalElements(result.data.totalElements);
+      } catch (e) {
+        toastErrorNotification(handleApiError(e));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [cursor, filter]);
 
   useUpdateEffect(() => {
@@ -113,7 +117,7 @@ const BabyPage = () => {
         setTotalElements(result.data.totalElements);
         toastSuccessNotification("Obrisano!");
       } catch (e) {
-        errorResponse(e);
+        toastErrorNotification(handleApiError(e));
       } finally {
         setLoading(false);
       }
@@ -187,7 +191,7 @@ const BabyPage = () => {
         toastSuccessNotification("Sačuvano!");
       }
     } catch (e) {
-      errorResponse(e);
+      toastErrorNotification(handleApiError(e));
     } finally {
       setLoading(false);
     }

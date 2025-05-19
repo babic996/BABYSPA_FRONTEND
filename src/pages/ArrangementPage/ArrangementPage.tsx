@@ -3,7 +3,7 @@ import {
   CreateOrUpdateArrangementInterface,
   TableArrangementInterface,
 } from "../../interfaces/ArrangementInterface";
-import { Controller, SubmitHandler, useForm } from "react-hook-form";
+import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
 import {
   addArrangement,
   deleteArrangement,
@@ -29,6 +29,7 @@ import {
   Modal,
   Pagination,
   Popconfirm,
+  Popover,
   Select,
   Table,
   Tag,
@@ -38,7 +39,7 @@ import dayjs from "dayjs";
 import { convertTableArrangementToCreateOrUpdateArrangement } from "../../mappers/ArrangementMapper";
 import InfoModal from "../../components/InfoModal/InfoModal";
 import FilterComponent from "../../components/FilterComponent/FilterComponent";
-import { DEFAULT_PAGE_SIZE, errorResponse } from "../../util/const";
+import { DEFAULT_PAGE_SIZE, handleApiError } from "../../util/const";
 import { getServicePackagesList } from "../../services/ServicePackageService";
 import { getBabiesList } from "../../services/BabyService";
 import { ShortDetailsInterface } from "../../interfaces/ShortDetails";
@@ -62,6 +63,8 @@ import useMediaQuery from "../../hooks/useMediaQuery";
 import TableCard from "../../components/TableCard/TableCard";
 import "./ArrangementPage.scss";
 import useUpdateEffect from "../../hooks/useUpdateEffect";
+import { getGiftCardList } from "../../services/GiftCardService";
+import { GiftCardInterface } from "../../interfaces/GiftCardInterface";
 
 const ArrangementPage = () => {
   const isModalOpen = useRef<boolean>(false);
@@ -74,6 +77,7 @@ const ArrangementPage = () => {
     ShortDetailsInterface[]
   >([]);
   const [discounts, setDiscounts] = useState<DiscountInterface[]>([]);
+  const [giftCards, setGiftCards] = useState<GiftCardInterface[]>([]);
   const [status, setStatus] = useState<StatusInterface[]>([]);
   const [paymentTypes, setPaymentTypes] = useState<PaymentTypeInterface[]>([]);
   const [reservationShortDetails, setRervationShortDetails] = useState<
@@ -88,7 +92,10 @@ const ArrangementPage = () => {
   const [hidePaymentType, setHidePaymentType] = useState<boolean>(false);
   const [disableEditField, setDisableEditField] = useState<boolean>(false);
   const [totalSum, setTotalSum] = useState<number>(0);
-  const schema = getArrangementValidationSchema(isEditArrangement);
+  const schema = getArrangementValidationSchema(
+    isEditArrangement,
+    paymentTypes
+  );
   const { filter, showFilters, setShowFilters, onResetFilter } = useFilter();
   const isMobile = useMediaQuery("(max-width: 1280px)");
 
@@ -100,6 +107,16 @@ const ArrangementPage = () => {
     formState: { errors },
   } = useForm<CreateOrUpdateArrangementInterface>({
     resolver: yupResolver(schema),
+  });
+
+  const selectedPaymentType = useWatch({
+    control,
+    name: "paymentTypeId",
+  });
+
+  const selectedArrangementId = useWatch({
+    control,
+    name: "arrangementId",
   });
 
   //------------------LIFECYCLE------------------
@@ -121,26 +138,36 @@ const ArrangementPage = () => {
     onResetFilter();
   }, []);
 
-  useUpdateEffect(() => {
-    if (filter) {
-      setLoading(true);
-      Promise.all([
-        getArrangements(cursor - 1, filter),
-        getArrangementsPrice(filter),
-      ])
-        .then(([arrangementsResult, priceResult]) => {
-          setArrangements(arrangementsResult.data.content);
-          setTotalElements(arrangementsResult.data.totalElements);
-          setTotalSum(priceResult.data);
-        })
-        .catch((e) => {
-          toastErrorNotification(e.response?.data?.message);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+  useEffect(() => {
+    if (selectedArrangementId) {
+      getGiftCardList(false, selectedArrangementId).then((res) =>
+        setGiftCards(res)
+      );
+      onResetFilter();
     }
-  }, [cursor, filter]);
+  }, [selectedArrangementId, isEditArrangement]);
+
+  useEffect(() => {
+    if (!filter) return;
+    const fetchData = async () => {
+      try {
+        const [arrangements, arrangementsPrice] = await Promise.all([
+          getArrangements(cursor - 1, filter),
+          getArrangementsPrice(filter),
+        ]);
+
+        setArrangements(arrangements.data.content);
+        setTotalSum(arrangementsPrice.data);
+        setTotalElements(arrangements.data.totalElements);
+      } catch (e) {
+        toastErrorNotification(handleApiError(e));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [filter, cursor]);
 
   useUpdateEffect(() => {
     if (cursor > 1) {
@@ -175,6 +202,7 @@ const ArrangementPage = () => {
       arrangementId: record.arrangementId ?? null,
       discountId: record?.discountId ?? null,
       paymentTypeId: record?.paymentTypeId ?? null,
+      giftCardId: record?.giftCardId ?? null,
       babyId: record.babyId,
       note: record?.note ?? "",
       servicePackageId: record.servicePackageId,
@@ -194,7 +222,7 @@ const ArrangementPage = () => {
         setTotalElements(result.data.totalElements);
         toastSuccessNotification("Obrisano!");
       } catch (e) {
-        errorResponse(e);
+        toastErrorNotification(handleApiError(e));
       } finally {
         setLoading(false);
       }
@@ -209,7 +237,7 @@ const ArrangementPage = () => {
         setRervationShortDetails(result);
         isReservationInfoModalVisible.current = true;
       } catch (e) {
-        errorResponse(e);
+        toastErrorNotification(handleApiError(e));
       } finally {
         setLoading(false);
       }
@@ -222,6 +250,7 @@ const ArrangementPage = () => {
       discountId: null,
       babyId: 0,
       statusId: null,
+      giftCardId: null,
       paymentTypeId: null,
       servicePackageId: 0,
       note: "",
@@ -235,6 +264,7 @@ const ArrangementPage = () => {
     reset({
       arrangementId: null,
       discountId: null,
+      giftCardId: null,
       babyId: 0,
       statusId: null,
       paymentTypeId: null,
@@ -296,7 +326,7 @@ const ArrangementPage = () => {
         toastSuccessNotification("Sačuvano!");
       }
     } catch (e) {
-      errorResponse(e);
+      toastErrorNotification(handleApiError(e));
     } finally {
       setLoading(false);
     }
@@ -351,7 +381,17 @@ const ArrangementPage = () => {
       title: "Tip plaćanja",
       dataIndex: "paymentType",
       key: "paymentType",
-      render: (item) => {
+      render: (item, record) => {
+        const match = paymentTypes.find((x) => x.paymentTypeId === item?.id);
+
+        if (match?.paymentTypeCode === "gift") {
+          return (
+            <Popover content={record?.giftCard?.value} title="Serijski broj">
+              <span>{item.value}</span>
+            </Popover>
+          );
+        }
+
         return item ? item.value : "Nije plaćeno";
       },
     },
@@ -590,14 +630,16 @@ const ArrangementPage = () => {
                       value={field.value == 0 ? null : field.value}
                       onChange={(value) => {
                         field.onChange(value);
+                        const selectedStatus = status.find(
+                          (x) => x.statusId === value
+                        );
                         if (
-                          status.find((x) => x.statusId == value)?.statusCode ==
-                            "created" ||
-                          status.find((x) => x.statusId == value)?.statusCode ==
-                            "not_paid"
+                          selectedStatus?.statusCode === "created" ||
+                          selectedStatus?.statusCode === "not_paid"
                         ) {
                           setHidePaymentType(true);
-                          setValue("paymentTypeId", 0);
+                          setValue("paymentTypeId", null);
+                          setValue("giftCardId", null);
                         } else {
                           setHidePaymentType(false);
                         }
@@ -612,6 +654,85 @@ const ArrangementPage = () => {
                   )}
                 />
               </Form.Item>
+
+              {!hidePaymentType && (
+                <Form.Item
+                  label="Odaberi tip plaćanja"
+                  validateStatus={errors.paymentTypeId ? "error" : ""}
+                  help={errors.paymentTypeId?.message}
+                  style={{ marginBottom: 8 }}
+                >
+                  <Controller
+                    name="paymentTypeId"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        placeholder="Odaberi tip plaćanja"
+                        value={field.value == 0 ? null : field.value}
+                        onChange={(value) => {
+                          field.onChange(value);
+                          if (
+                            paymentTypes.find((x) => x.paymentTypeId === value)
+                              ?.paymentTypeCode === "cash"
+                          ) {
+                            setValue("giftCardId", null);
+                          }
+                        }}
+                      >
+                        {paymentTypes?.map((x) => (
+                          <Select.Option
+                            key={x.paymentTypeId}
+                            value={x.paymentTypeId}
+                          >
+                            {x.paymentTypeName}
+                          </Select.Option>
+                        ))}
+                      </Select>
+                    )}
+                  />
+                </Form.Item>
+              )}
+
+              {paymentTypes.find((x) => x.paymentTypeId === selectedPaymentType)
+                ?.paymentTypeCode === "gift" && (
+                <Form.Item
+                  label="Odaberi poklon karticu"
+                  validateStatus={errors.giftCardId ? "error" : ""}
+                  help={errors.giftCardId?.message}
+                  style={{ marginBottom: 8 }}
+                >
+                  <Controller
+                    name="giftCardId"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        placeholder="Odaberi poklon karticu"
+                        showSearch
+                        allowClear
+                        optionFilterProp="children"
+                        filterOption={(input, option) =>
+                          (option?.children as string)
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        }
+                        value={field.value == 0 ? null : field.value}
+                      >
+                        {giftCards?.map((x) => (
+                          <Select.Option
+                            key={x.giftCardId}
+                            value={x.giftCardId}
+                          >
+                            {x.serialNumber}
+                          </Select.Option>
+                        ))}
+                      </Select>
+                    )}
+                  />
+                </Form.Item>
+              )}
+
               <Form.Item
                 label="Povećaj broj dana"
                 validateStatus={errors.extendDurationDays ? "error" : ""}
@@ -628,37 +749,6 @@ const ArrangementPage = () => {
               </Form.Item>
             </>
           )}
-
-          {isEditArrangement && hidePaymentType == false && (
-            <Form.Item
-              label="Odaberi tip plaćanja"
-              validateStatus={errors.paymentTypeId ? "error" : ""}
-              help={errors.paymentTypeId?.message}
-              style={{ marginBottom: 8 }}
-            >
-              <Controller
-                name="paymentTypeId"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    {...field}
-                    placeholder="Odaberi tip plaćanja"
-                    value={field.value == 0 ? null : field.value}
-                  >
-                    {paymentTypes?.map((x) => (
-                      <Select.Option
-                        key={x.paymentTypeId}
-                        value={x.paymentTypeId}
-                      >
-                        {x.paymentTypeName}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                )}
-              />
-            </Form.Item>
-          )}
-
           <Form.Item
             label="Bilješka"
             validateStatus={errors.note ? "error" : ""}
@@ -709,6 +799,7 @@ const ArrangementPage = () => {
             showPaymentTypeSelect={true}
             showStatusSelect={true}
             showArrangementIdSearch={true}
+            showGiftCards={true}
             statusTypeCode="arrangement"
             showRemainingTerm={true}
             showRangePicker={true}
@@ -774,7 +865,17 @@ const ArrangementPage = () => {
                   },
                   {
                     title: "Tip plaćanja",
-                    value: x.paymentType ? x.paymentType.value : "Nije plaćeno",
+                    value: (() => {
+                      const selectedPayment = paymentTypes.find(
+                        (p) => p.paymentTypeId === x.paymentType?.id
+                      );
+                      if (selectedPayment?.paymentTypeCode === "gift") {
+                        return `${x.paymentType.value} (${x.giftCard?.value})`;
+                      }
+                      return x.paymentType
+                        ? x.paymentType.value
+                        : "Nije plaćeno";
+                    })(),
                   },
                   {
                     title: "Datum kreiranja",

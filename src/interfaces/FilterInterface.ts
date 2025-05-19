@@ -8,6 +8,7 @@ export interface FilterInterface {
   babyId?: number | null;
   paymentTypeId?: number | null;
   servicePackageId?: number | null;
+  giftCardId?: number | null;
   remainingTerm?: number | null;
   arrangementId?: number | null;
   date?: string | null;

@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const getUserInfo = () => {
     if (token) {
-      let user: UserInterface = {
+      const user: UserInterface = {
         firstName: jwtDecode<{ firstName: string }>(token).firstName,
         username: jwtDecode<{ sub: string }>(token).sub,
         email: jwtDecode<{ email: string }>(token).email,

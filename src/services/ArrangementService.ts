@@ -8,50 +8,60 @@ export const getArrangements = async (
   filter: FilterInterface | null
 ) => {
   const request = baseRequest();
-  let filterString = "";
+
+  const params = new URLSearchParams();
+
+  params.set("size", String(DEFAULT_PAGE_SIZE));
+  if (cursor !== null) {
+    params.set("page", String(cursor));
+  }
 
   if (filter?.remainingTerm != undefined) {
-    filterString += `&remainingTerm=${filter.remainingTerm}`;
+    params.append("remainingTerm", filter.remainingTerm.toString());
   }
 
   if (filter?.startPrice) {
-    filterString += `&startPrice=${filter.startPrice}`;
+    params.append("startPrice", filter.startPrice.toString());
   }
 
   if (filter?.endPrice) {
-    filterString += `&endPrice=${filter.endPrice}`;
+    params.append("endPrice", filter.endPrice.toString());
   }
 
   if (filter?.babyId) {
-    filterString += `&babyId=${filter.babyId}`;
+    params.append("babyId", filter.babyId.toString());
   }
 
   if (filter?.paymentTypeId) {
-    filterString += `&paymentTypeId=${filter.paymentTypeId}`;
+    params.append("paymentTypeId", filter.paymentTypeId.toString());
   }
 
   if (filter?.servicePackageId) {
-    filterString += `&servicePackageId=${filter.servicePackageId}`;
+    params.append("servicePackageId", filter.servicePackageId.toString());
+  }
+
+  if (filter?.giftCardId) {
+    params.append("giftCardId", filter.giftCardId.toString());
   }
 
   if (filter?.statusId) {
-    filterString += `&statusId=${filter.statusId}`;
+    params.append("statusId", filter.statusId.toString());
   }
 
   if (filter?.arrangementId) {
-    filterString += `&arrangementId=${filter.arrangementId}`;
+    params.append("arrangementId", filter.arrangementId.toString());
   }
 
   if (filter?.startRangeDate) {
-    filterString += `&startRangeDate=${filter.startRangeDate}`;
+    params.append("startRangeDate", filter.startRangeDate.toString());
   }
 
   if (filter?.endRangeDate) {
-    filterString += `&endRangeDate=${filter.endRangeDate}`;
+    params.append("endRangeDate", filter.endRangeDate.toString());
   }
 
   const result = await request({
-    url: `/arrangement/find-all?page=${cursor}&size=${DEFAULT_PAGE_SIZE}${filterString}`,
+    url: `/arrangement/find-all??${params.toString()}`,
     method: "get",
   });
 
@@ -84,6 +94,10 @@ export const getArrangementsPrice = async (filter: FilterInterface | null) => {
 
   if (filter?.servicePackageId) {
     params.append("servicePackageId", filter.servicePackageId.toString());
+  }
+
+  if (filter?.giftCardId) {
+    params.append("giftCardId", filter.giftCardId.toString());
   }
 
   if (filter?.statusId) {

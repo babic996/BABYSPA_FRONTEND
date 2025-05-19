@@ -16,6 +16,7 @@ import NotAuthorizedPage from "./pages/NotAuthorizedPage/NotAuthorizedPage";
 import PageNotFound from "./pages/PageNotFound/PageNotFound";
 import { ConfigProvider as ConfigProviderMobile } from "antd-mobile";
 import enUS from "antd-mobile/es/locales/en-US";
+import SettingsPage from "./pages/SettingsPage/SettingsPage";
 
 function App() {
   return (
@@ -95,6 +96,16 @@ function App() {
                       ]}
                     >
                       <ReportPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute
+                      allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
+                    >
+                      <SettingsPage />
                     </ProtectedRoute>
                   }
                 />
