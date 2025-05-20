@@ -122,29 +122,47 @@ const ArrangementPage = () => {
   //------------------LIFECYCLE------------------
 
   useEffect(() => {
-    Promise.all([
-      getServicePackagesList(),
-      getBabiesList(),
-      getStatusList("arrangement"),
-      getDiscountList(),
-      getPaymentTypeList(),
-    ]).then(([servicePackages, babies, status, discounts, paymentTypes]) => {
-      setServicePackages(servicePackages);
-      setBabies(babies);
-      setStatus(status);
-      setDiscounts(discounts);
-      setPaymentTypes(paymentTypes);
-    });
-    onResetFilter();
+    const fetchInitialData = async () => {
+      try {
+        const [servicePackages, babies, status, discounts, paymentTypes] =
+          await Promise.all([
+            getServicePackagesList(),
+            getBabiesList(),
+            getStatusList("arrangement"),
+            getDiscountList(),
+            getPaymentTypeList(),
+          ]);
+
+        setServicePackages(servicePackages);
+        setBabies(babies);
+        setStatus(status);
+        setDiscounts(discounts);
+        setPaymentTypes(paymentTypes);
+      } catch (e) {
+        toastErrorNotification(handleApiError(e));
+      } finally {
+        onResetFilter();
+      }
+    };
+
+    fetchInitialData();
   }, []);
 
   useEffect(() => {
-    if (selectedArrangementId) {
-      getGiftCardList(false, selectedArrangementId).then((res) =>
-        setGiftCards(res)
-      );
-      onResetFilter();
-    }
+    const fetchGiftCards = async () => {
+      if (!selectedArrangementId) return;
+
+      try {
+        const res = await getGiftCardList(false, selectedArrangementId);
+        setGiftCards(res);
+      } catch (e) {
+        toastErrorNotification(handleApiError(e));
+      } finally {
+        onResetFilter();
+      }
+    };
+
+    fetchGiftCards();
   }, [selectedArrangementId, isEditArrangement]);
 
   useEffect(() => {
