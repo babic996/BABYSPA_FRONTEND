@@ -27,6 +27,7 @@ import {
   Modal,
   Pagination,
   Popconfirm,
+  Switch,
 } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import HeaderButtonsComponent from "../HeaderButtonsComponent/HeaderButtonsComponent";
@@ -92,6 +93,7 @@ const GiftCardComponent = () => {
       giftCardId: record.giftCardId ?? null,
       serialNumber: record.serialNumber,
       expirationDate: record?.expirationDate ?? "",
+      used: record?.used ?? "",
     });
     isModalOpen.current = true;
   };
@@ -118,6 +120,7 @@ const GiftCardComponent = () => {
       giftCardId: null,
       serialNumber: "",
       expirationDate: "",
+      used: false,
     });
     setIsEditGiftCard(false);
     isModalOpen.current = false;
@@ -128,6 +131,7 @@ const GiftCardComponent = () => {
       giftCardId: null,
       serialNumber: "",
       expirationDate: "",
+      used: false,
     });
     setIsEditGiftCard(false);
     isModalOpen.current = true;
@@ -198,6 +202,16 @@ const GiftCardComponent = () => {
       },
     },
     {
+      title: "Aranžman",
+      dataIndex: "arrangementId",
+      key: "arrangementId",
+      render: (value, record) => {
+        return value
+          ? `ID aranžmana: ${value} (${record.phoneNumber})`
+          : "Nema podataka";
+      },
+    },
+    {
       title: "Akcije",
       key: "actions",
       render: (_, record) => (
@@ -250,6 +264,28 @@ const GiftCardComponent = () => {
               render={({ field }) => <Input {...field} />}
             />
           </Form.Item>
+
+          {isEditGiftCard && (
+            <Form.Item
+              label="Status kartice"
+              validateStatus={errors.used ? "error" : ""}
+              help={errors.used?.message}
+              style={{ marginBottom: 8 }}
+            >
+              <Controller
+                name="used"
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <Switch
+                    checked={value}
+                    onChange={onChange}
+                    checkedChildren="Iskorištena"
+                    unCheckedChildren="Nije iskorištena"
+                  />
+                )}
+              />
+            </Form.Item>
+          )}
 
           <Form.Item
             label="Datum isteka kartice"
@@ -323,6 +359,12 @@ const GiftCardComponent = () => {
                   {
                     title: "Status kartice",
                     value: x.used === true ? "Iskorištena" : "Nije iskorištena",
+                  },
+                  {
+                    title: "Aranžman",
+                    value: x.arrangementId
+                      ? `ID aranžmana: ${x.arrangementId} (${x.phoneNumber})`
+                      : "Nema podataka",
                   },
                 ]}
               />
