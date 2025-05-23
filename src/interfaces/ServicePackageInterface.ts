@@ -6,3 +6,10 @@ export interface ServicePackageInterface {
   price: number;
   note?: string | null;
 }
+
+export interface DataStateServicePackage {
+  cursor: number;
+  servicePackages: ServicePackageInterface[];
+  totalElements?: number;
+  loading: boolean;
+}

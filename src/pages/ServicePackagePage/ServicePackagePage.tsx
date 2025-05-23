@@ -1,54 +1,35 @@
 import { useEffect, useRef, useState } from "react";
-import { ServicePackageInterface } from "../../interfaces/ServicePackageInterface";
 import {
-  addServicePackage,
-  deleteServicePackage,
-  editServicePackage,
-  getServicePackages,
-} from "../../services/ServicePackageService";
-import {
-  toastErrorNotification,
-  toastSuccessNotification,
-} from "../../util/toastNotification";
-import {
-  Button,
-  Table,
-  Popconfirm,
-  Modal,
-  Form,
-  Input,
-  InputNumber,
-  Pagination,
-} from "antd";
+  DataStateServicePackage,
+  ServicePackageInterface,
+} from "../../interfaces/ServicePackageInterface";
+import { getServicePackages } from "../../services/ServicePackageService";
+import { toastErrorNotification } from "../../util/toastNotification";
+import { Modal } from "antd";
 import FilterComponent from "../../components/FilterComponent/FilterComponent";
-import { DEFAULT_PAGE_SIZE, handleApiError } from "../../util/const";
-import type { ColumnsType } from "antd/es/table";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { handleApiError } from "../../util/const";
 import { getServicePackageValidationSchema } from "../../validations/ServicePackageValidationSchema";
-import { useForm, Controller, SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import InfoModal from "../../components/InfoModal/InfoModal";
 import { useFilter } from "../../context/Filter/useFilter";
 import HeaderButtonsComponent from "../../components/HeaderButtonsComponent/HeaderButtonsComponent";
-import { existsByServicePackageId } from "../../services/ArrangementService";
 import useMediaQuery from "../../hooks/useMediaQuery";
-import TableCard from "../../components/TableCard/TableCard";
 import useUpdateEffect from "../../hooks/useUpdateEffect";
+import ServicePackageModalContent from "../../components/ServicePackageModalContent/ServicePackageModalContent";
+import TableComponent from "./TableComponent";
 
 const ServicePackagePage = () => {
   const isModalOpen = useRef<boolean>(false);
-  const isInfoModalVisible = useRef<boolean>(false);
-  const [cursor, setCursor] = useState<number>(1);
-  const [servicePackages, setServicePackages] = useState<
-    ServicePackageInterface[]
-  >([]);
-  const [totalElements, setTotalElements] = useState<number>();
+  const [dataState, setDataState] = useState<DataStateServicePackage>({
+    cursor: 1,
+    servicePackages: [] as ServicePackageInterface[],
+    totalElements: undefined as number | undefined,
+    loading: true,
+  });
   const [isEditServicePackage, setIsEditServicePackage] =
     useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
   const [existsByServicePackage, setExistsByServicePackage] =
     useState<boolean>(false);
-  const [currentNote, setCurrentNote] = useState<string>("");
   const schema = getServicePackageValidationSchema(isEditServicePackage);
   const { filter, showFilters, setShowFilters, onResetFilter } = useFilter();
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -73,69 +54,30 @@ const ServicePackagePage = () => {
 
     const fetchData = async () => {
       try {
-        setLoading(true);
-        const result = await getServicePackages(cursor - 1, filter);
-        setServicePackages(result.data.content);
-        setTotalElements(result.data.totalElements);
+        setDataState((prev) => ({ ...prev, loading: true }));
+        const result = await getServicePackages(dataState.cursor - 1, filter);
+        setDataState((prev) => ({
+          ...prev,
+          servicePackages: result.data.content,
+          totalElements: result.data.totalElements,
+        }));
       } catch (e) {
         toastErrorNotification(handleApiError(e));
       } finally {
-        setLoading(false);
+        setDataState((prev) => ({ ...prev, loading: false }));
       }
     };
 
     fetchData();
-  }, [cursor, filter]);
+  }, [dataState.cursor, filter]);
 
   useUpdateEffect(() => {
-    if (cursor > 1) {
-      setCursor(1);
+    if (dataState.cursor > 1) {
+      setDataState((prev) => ({ ...prev, cursor: 1 }));
     }
   }, [filter]);
 
   //------------------METHODS----------------
-
-  const nextPage = (page: number) => {
-    setCursor(page);
-  };
-
-  const handleEdit = async (record: ServicePackageInterface) => {
-    setIsEditServicePackage(true);
-    try {
-      if (record.servicePackageId) {
-        const res = await existsByServicePackageId(record.servicePackageId);
-        setExistsByServicePackage(res);
-      }
-    } catch (e) {
-      toastErrorNotification(handleApiError(e));
-    }
-    reset({
-      servicePackageId: record.servicePackageId,
-      servicePackageName: record.servicePackageName,
-      termNumber: record.termNumber,
-      servicePackageDurationDays: record.servicePackageDurationDays,
-      price: record.price,
-      note: record?.note ?? "",
-    });
-    isModalOpen.current = true;
-  };
-
-  const handleDelete = async (servicePackageId?: number | null) => {
-    if (servicePackageId) {
-      setLoading(true);
-      try {
-        await deleteServicePackage(servicePackageId);
-        const result = await getServicePackages(cursor - 1, null);
-        setServicePackages(result.data.content);
-        setTotalElements(result.data.totalElements);
-        toastSuccessNotification("Obrisano!");
-      } catch (e) {
-        toastErrorNotification(handleApiError(e));
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
 
   const handleModalCancel = () => {
     reset({
@@ -164,132 +106,10 @@ const ServicePackagePage = () => {
     isModalOpen.current = true;
   };
 
-  const handleOpenInfoModal = (note?: string | null) => {
-    if (note) {
-      setCurrentNote(note);
-      isInfoModalVisible.current = true;
-    }
-  };
-
-  const handleCloseInfoModal = () => {
-    isInfoModalVisible.current = false;
-    setCurrentNote("");
-  };
-
-  const onSubmit: SubmitHandler<ServicePackageInterface> = async (data) => {
-    setLoading(true);
-    try {
-      if (isEditServicePackage) {
-        const res = await editServicePackage(data);
-        setServicePackages((prev) =>
-          prev.map((item) =>
-            item.servicePackageId === data.servicePackageId
-              ? { ...item, ...res.data.data }
-              : item
-          )
-        );
-        isModalOpen.current = false;
-        toastSuccessNotification("Ažurirano!");
-      } else {
-        await addServicePackage(data);
-        const result = await getServicePackages(cursor - 1, null);
-        setServicePackages(result.data.content);
-        setTotalElements(result.data.totalElements);
-        isModalOpen.current = false;
-        toastSuccessNotification("Sačuvano!");
-      }
-    } catch (e) {
-      toastErrorNotification(handleApiError(e));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   //------------------RENDER------------------
-
-  const columns: ColumnsType<ServicePackageInterface> = [
-    {
-      title: "ID paketa usluge",
-      dataIndex: "servicePackageId",
-      key: "servicePackageId",
-    },
-    {
-      title: "Naziv paketa usluge",
-      dataIndex: "servicePackageName",
-      key: "servicePackageName",
-    },
-    {
-      title: "Broj termina",
-      dataIndex: "termNumber",
-      key: "termNumber",
-      render: (value) => {
-        return value ? value : "Nema podatka";
-      },
-    },
-    {
-      title: "Trajanje paketa u danima",
-      dataIndex: "servicePackageDurationDays",
-      key: "servicePackageDurationDays",
-      render: (value) => {
-        return value ? value : "Nema podatka";
-      },
-    },
-    {
-      title: "Cijena u KM",
-      dataIndex: "price",
-      key: "price",
-      render: (value) => {
-        return value ? value.toFixed(2) : "Nema podatka";
-      },
-    },
-    {
-      title: "Bilješka",
-      dataIndex: "note",
-      key: "note",
-      render: (value) => {
-        const previewText =
-          value?.length > 3 ? value.slice(0, 3) + "..." : value;
-
-        return (
-          <span
-            onClick={() => handleOpenInfoModal(value)}
-            style={{ cursor: "pointer", color: "#1890ff" }}
-          >
-            {previewText}
-          </span>
-        );
-      },
-    },
-    {
-      title: "Akcije",
-      key: "actions",
-      render: (_, record) => (
-        <>
-          <EditOutlined
-            title="Uredi"
-            style={{ marginRight: 16 }}
-            onClick={() => handleEdit(record)}
-          />
-          <Popconfirm
-            title="Da li ste sigurni da želite izbrisati ovaj paket usluge?"
-            onConfirm={() => handleDelete(record.servicePackageId)}
-            okText="Da"
-            cancelText="Ne"
-          >
-            <DeleteOutlined style={{ color: "red" }} title="Izbriši" />
-          </Popconfirm>
-        </>
-      ),
-    },
-  ];
 
   return (
     <>
-      <InfoModal
-        visible={isInfoModalVisible.current}
-        onClose={handleCloseInfoModal}
-        fullText={currentNote}
-      />
       <Modal
         title={
           isEditServicePackage ? (
@@ -305,117 +125,16 @@ const ServicePackagePage = () => {
         width={isMobile ? 300 : 600}
         centered
       >
-        <Form onFinish={handleSubmit(onSubmit)} layout="vertical">
-          <Form.Item
-            label="Naziv paketa usluge"
-            validateStatus={errors.servicePackageName ? "error" : ""}
-            help={errors.servicePackageName?.message}
-            style={{ marginBottom: 8 }}
-          >
-            <Controller
-              name="servicePackageName"
-              control={control}
-              render={({ field }) => (
-                <Input {...field} disabled={existsByServicePackage} />
-              )}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Broj termina"
-            validateStatus={errors.termNumber ? "error" : ""}
-            help={errors.termNumber?.message}
-            style={{ marginBottom: 8 }}
-          >
-            <Controller
-              name="termNumber"
-              control={control}
-              render={({ field }) => (
-                <InputNumber
-                  {...field}
-                  min={0}
-                  style={{ width: "100%" }}
-                  disabled={existsByServicePackage}
-                />
-              )}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Broj dana trajanja paketa"
-            validateStatus={errors.servicePackageDurationDays ? "error" : ""}
-            help={errors.servicePackageDurationDays?.message}
-            style={{ marginBottom: 8 }}
-          >
-            <Controller
-              name="servicePackageDurationDays"
-              control={control}
-              render={({ field }) => (
-                <InputNumber
-                  {...field}
-                  min={0}
-                  style={{ width: "100%" }}
-                  disabled={existsByServicePackage}
-                />
-              )}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Cijena"
-            validateStatus={errors.price ? "error" : ""}
-            help={errors.price?.message}
-            style={{ marginBottom: 8 }}
-          >
-            <Controller
-              name="price"
-              control={control}
-              render={({ field }) => (
-                <InputNumber
-                  {...field}
-                  min={0}
-                  step={0.01}
-                  style={{ width: "100%" }}
-                />
-              )}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Bilješka"
-            validateStatus={errors.note ? "error" : ""}
-            help={errors.note?.message}
-            style={{ marginBottom: 8 }}
-          >
-            <Controller
-              name="note"
-              control={control}
-              render={({ field }) => (
-                <Input.TextArea
-                  {...field}
-                  value={field.value ?? ""}
-                  autoSize={{ minRows: 0, maxRows: 6 }}
-                  onKeyDown={(e) => {
-                    if (e.key == "Enter") {
-                      e.preventDefault();
-                      const newValue = `${field.value ?? ""}\n`;
-                      field.onChange(newValue);
-                    }
-                  }}
-                />
-              )}
-            />
-          </Form.Item>
-
-          <Form.Item
-            style={{ textAlign: "center", marginBottom: 8 }}
-            wrapperCol={{ span: 24 }}
-          >
-            <Button type="primary" htmlType="submit">
-              Sačuvaj
-            </Button>
-          </Form.Item>
-        </Form>
+        <ServicePackageModalContent
+          control={control}
+          dataState={dataState}
+          errors={errors}
+          existsByServicePackage={existsByServicePackage}
+          handleSubmit={handleSubmit}
+          isEditServicePackage={isEditServicePackage}
+          isModalOpen={isModalOpen}
+          setDataState={setDataState}
+        />
       </Modal>
       <div style={{ padding: "16px" }}>
         <HeaderButtonsComponent
@@ -426,75 +145,15 @@ const ServicePackagePage = () => {
         {showFilters && (
           <FilterComponent showSearch={true} showPriceSlider={true} />
         )}
-        {isMobile && (
-          <>
-            {servicePackages.map((x) => (
-              <TableCard
-                key={x.servicePackageId}
-                loading={loading}
-                handleEdit={() => handleEdit(x)}
-                handleDelete={() => handleDelete(x.servicePackageId)}
-                deleteTitle="Da li ste sigurni da želite izbrisati ovaj paket usluge?"
-                columns={[
-                  { title: "ID paketa usluge", value: x.servicePackageId },
-                  {
-                    title: "Naziv paketa usluge",
-                    value: x.servicePackageName
-                      ? x.servicePackageName
-                      : "Nema podataka",
-                  },
-                  {
-                    title: "Broj termina",
-                    value: x.termNumber ? x.termNumber : "Nema podataka",
-                  },
-                  {
-                    title: "Trajanje paketa u danima",
-                    value: x.servicePackageDurationDays
-                      ? x.servicePackageDurationDays
-                      : "Nema podataka",
-                  },
-                  {
-                    title: "Cijena u KM",
-                    value: x.price ? x.price.toFixed(2) : "Nema podataka",
-                  },
-                  {
-                    title: "Bilješka",
-                    value: x.note ? x.note : "Nema podataka",
-                    isPreviewable: x.note && x.note.length > 3 ? true : false,
-                    onNoteClick: () => handleOpenInfoModal(x.note),
-                  },
-                ]}
-              />
-            ))}
-            <Pagination
-              current={cursor}
-              pageSize={DEFAULT_PAGE_SIZE}
-              total={totalElements}
-              onChange={nextPage}
-              showSizeChanger={false}
-              locale={{ items_per_page: "po stranici" }}
-              style={{ justifyContent: "center" }}
-            />
-          </>
-        )}
-        {!isMobile && (
-          <Table
-            columns={columns}
-            loading={loading}
-            dataSource={servicePackages}
-            rowKey="servicePackageId"
-            locale={{
-              emptyText: "Nema podataka za prikazati",
-            }}
-            pagination={{
-              current: cursor,
-              pageSize: DEFAULT_PAGE_SIZE,
-              total: totalElements,
-              showSizeChanger: false,
-              onChange: nextPage,
-            }}
-          />
-        )}
+        <TableComponent
+          dataState={dataState}
+          isMobile={isMobile}
+          isModalOpen={isModalOpen}
+          reset={reset}
+          setDataState={setDataState}
+          setExistsByServicePackage={setExistsByServicePackage}
+          setIsEditServicePackage={setIsEditServicePackage}
+        />
       </div>
     </>
   );

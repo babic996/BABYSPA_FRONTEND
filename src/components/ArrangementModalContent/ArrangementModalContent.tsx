@@ -1,0 +1,391 @@
+import { Button, Form, Input, InputNumber, Select } from "antd";
+import {
+  Control,
+  Controller,
+  FieldErrors,
+  SubmitHandler,
+  UseFormHandleSubmit,
+  UseFormSetValue,
+} from "react-hook-form";
+import {
+  CreateOrUpdateArrangementInterface,
+  DataStateArrangement,
+  DropDownDataInterface,
+} from "../../interfaces/ArrangementInterface";
+import React, { MutableRefObject } from "react";
+import {
+  toastErrorNotification,
+  toastSuccessNotification,
+} from "../../util/toastNotification";
+import { handleApiError } from "../../util/const";
+import {
+  addArrangement,
+  editArrangement,
+  getArrangements,
+} from "../../services/ArrangementService";
+
+interface ArrangementModalContentProps {
+  disableEditField: boolean;
+  hidePaymentType: boolean;
+  isEditArrangement: boolean;
+  setHidePaymentType: React.Dispatch<React.SetStateAction<boolean>>;
+  setDataState: React.Dispatch<React.SetStateAction<DataStateArrangement>>;
+  dataState: DataStateArrangement;
+  selectedPaymentType: number | undefined | null;
+  setValue: UseFormSetValue<CreateOrUpdateArrangementInterface>;
+  control: Control<CreateOrUpdateArrangementInterface>;
+  handleSubmit: UseFormHandleSubmit<CreateOrUpdateArrangementInterface>;
+  errors: FieldErrors<CreateOrUpdateArrangementInterface>;
+  dropdownData: DropDownDataInterface;
+  isModalOpen: MutableRefObject<boolean>;
+}
+
+const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
+  control,
+  disableEditField,
+  dropdownData,
+  selectedPaymentType,
+  errors,
+  handleSubmit,
+  setDataState,
+  dataState,
+  hidePaymentType,
+  isEditArrangement,
+  setHidePaymentType,
+  setValue,
+  isModalOpen,
+}) => {
+  const onSubmit: SubmitHandler<CreateOrUpdateArrangementInterface> = async (
+    data
+  ) => {
+    setDataState((prev) => ({ ...prev, loading: true }));
+    try {
+      if (isEditArrangement) {
+        if (
+          data.statusId ===
+            dropdownData.status.find((x) => x.statusCode == "paid")?.statusId &&
+          data.paymentTypeId == null
+        ) {
+          toastErrorNotification("Morate izabrati tip plaćanja!");
+        } else {
+          const res = await editArrangement(data);
+          const oldItem = dataState.arrangements.find(
+            (item) => item.arrangementId === data.arrangementId
+          );
+          const oldPrice = oldItem?.price || 0;
+          const newPrice = res.data.data?.price || 0;
+          setDataState((prev) => ({
+            ...prev,
+            arrangements: prev.arrangements.map((item) =>
+              item.arrangementId === data.arrangementId
+                ? { ...item, ...res.data.data }
+                : item
+            ),
+            totalSum: prev.totalSum - oldPrice + newPrice,
+          }));
+          isModalOpen.current = false;
+          toastSuccessNotification("Ažurirano!");
+        }
+      } else {
+        const res = await addArrangement(data);
+        const result = await getArrangements(dataState.cursor - 1, null);
+        setDataState((prev) => ({
+          ...prev,
+          arrangements: result.data.content,
+          totalElements: result.data.totalElements,
+          totalSum: dataState.totalSum + res.data.data.price,
+        }));
+        isModalOpen.current = false;
+        toastSuccessNotification("Sačuvano!");
+      }
+    } catch (e) {
+      toastErrorNotification(handleApiError(e));
+    } finally {
+      setDataState((prev) => ({ ...prev, loading: false }));
+    }
+  };
+
+  return (
+    <Form onFinish={handleSubmit(onSubmit)} layout="vertical">
+      <Form.Item
+        label="Odaberi bebu"
+        validateStatus={errors.babyId ? "error" : ""}
+        help={errors.babyId?.message}
+        style={{ marginBottom: 8 }}
+      >
+        <Controller
+          name="babyId"
+          control={control}
+          render={({ field }) => (
+            <Select
+              {...field}
+              disabled={disableEditField}
+              placeholder="Odaberi bebu"
+              value={field.value == 0 ? null : field.value}
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                (option?.children as string)
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
+              }
+            >
+              {dropdownData.babies?.map((x) => (
+                <Select.Option key={x.id} value={x.id}>
+                  {x.value}
+                </Select.Option>
+              ))}
+            </Select>
+          )}
+        />
+      </Form.Item>
+
+      <Form.Item
+        label="Odaberi paket usluge"
+        validateStatus={errors.servicePackageId ? "error" : ""}
+        help={errors.servicePackageId?.message}
+        style={{ marginBottom: 8 }}
+      >
+        <Controller
+          name="servicePackageId"
+          control={control}
+          render={({ field }) => (
+            <Select
+              {...field}
+              placeholder="Odaberi paket usluge"
+              disabled={disableEditField}
+              value={field.value == 0 ? null : field.value}
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                (option?.children as string)
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
+              }
+            >
+              {dropdownData.servicePackages?.map((x) => (
+                <Select.Option key={x.id} value={x.id}>
+                  {x.value}
+                </Select.Option>
+              ))}
+            </Select>
+          )}
+        />
+      </Form.Item>
+
+      <Form.Item
+        label="Odaberi popust"
+        validateStatus={errors.discountId ? "error" : ""}
+        help={errors.discountId?.message}
+        style={{ marginBottom: 8 }}
+      >
+        <Controller
+          name="discountId"
+          control={control}
+          render={({ field }) => (
+            <Select
+              {...field}
+              placeholder="Odaberi popust"
+              showSearch
+              optionFilterProp="children"
+              value={
+                field.value == 0 ||
+                field.value == null ||
+                field.value == undefined
+                  ? 0
+                  : field.value
+              }
+              filterOption={(input, option) =>
+                (option?.children as string)
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
+              }
+            >
+              <Select.Option key={0} value={0}>
+                Bez popusta
+              </Select.Option>
+              {dropdownData.discounts?.map((x) => (
+                <Select.Option key={x.discountId} value={x.discountId}>
+                  {x.discountName}
+                </Select.Option>
+              ))}
+            </Select>
+          )}
+        />
+      </Form.Item>
+
+      {isEditArrangement && (
+        <>
+          <Form.Item
+            label="Odaberi status"
+            validateStatus={errors.statusId ? "error" : ""}
+            help={errors.statusId?.message}
+            style={{ marginBottom: 8 }}
+          >
+            <Controller
+              name="statusId"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  placeholder="Odaberi status"
+                  value={field.value == 0 ? null : field.value}
+                  onChange={(value) => {
+                    field.onChange(value);
+                    const selectedStatus = dropdownData.status.find(
+                      (x) => x.statusId === value
+                    );
+                    if (
+                      selectedStatus?.statusCode === "created" ||
+                      selectedStatus?.statusCode === "not_paid"
+                    ) {
+                      setHidePaymentType(true);
+                      setValue("paymentTypeId", null);
+                      setValue("giftCardId", null);
+                    } else {
+                      setHidePaymentType(false);
+                    }
+                  }}
+                >
+                  {dropdownData.status?.map((x) => (
+                    <Select.Option key={x.statusId} value={x.statusId}>
+                      {x.statusName}
+                    </Select.Option>
+                  ))}
+                </Select>
+              )}
+            />
+          </Form.Item>
+
+          {!hidePaymentType && (
+            <Form.Item
+              label="Odaberi tip plaćanja"
+              validateStatus={errors.paymentTypeId ? "error" : ""}
+              help={errors.paymentTypeId?.message}
+              style={{ marginBottom: 8 }}
+            >
+              <Controller
+                name="paymentTypeId"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    placeholder="Odaberi tip plaćanja"
+                    value={field.value == 0 ? null : field.value}
+                    onChange={(value) => {
+                      field.onChange(value);
+                      if (
+                        dropdownData.paymentTypes.find(
+                          (x) => x.paymentTypeId === value
+                        )?.paymentTypeCode === "cash"
+                      ) {
+                        setValue("giftCardId", null);
+                      }
+                    }}
+                  >
+                    {dropdownData.paymentTypes?.map((x) => (
+                      <Select.Option
+                        key={x.paymentTypeId}
+                        value={x.paymentTypeId}
+                      >
+                        {x.paymentTypeName}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                )}
+              />
+            </Form.Item>
+          )}
+
+          {dropdownData.paymentTypes.find(
+            (x) => x.paymentTypeId === selectedPaymentType
+          )?.paymentTypeCode === "gift" && (
+            <Form.Item
+              label="Odaberi poklon karticu"
+              validateStatus={errors.giftCardId ? "error" : ""}
+              help={errors.giftCardId?.message}
+              style={{ marginBottom: 8 }}
+            >
+              <Controller
+                name="giftCardId"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    placeholder="Odaberi poklon karticu"
+                    showSearch
+                    allowClear
+                    optionFilterProp="children"
+                    filterOption={(input, option) =>
+                      (option?.children as string)
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    value={field.value == 0 ? null : field.value}
+                  >
+                    {dropdownData.giftCards?.map((x) => (
+                      <Select.Option key={x.giftCardId} value={x.giftCardId}>
+                        {x.serialNumber}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                )}
+              />
+            </Form.Item>
+          )}
+
+          <Form.Item
+            label="Povećaj broj dana"
+            validateStatus={errors.extendDurationDays ? "error" : ""}
+            help={errors.extendDurationDays?.message}
+            style={{ marginBottom: 8 }}
+          >
+            <Controller
+              name="extendDurationDays"
+              control={control}
+              render={({ field }) => (
+                <InputNumber {...field} min={0} style={{ width: "100%" }} />
+              )}
+            />
+          </Form.Item>
+        </>
+      )}
+      <Form.Item
+        label="Bilješka"
+        validateStatus={errors.note ? "error" : ""}
+        help={errors.note?.message}
+        style={{ marginBottom: 8 }}
+      >
+        <Controller
+          name="note"
+          control={control}
+          render={({ field }) => (
+            <Input.TextArea
+              {...field}
+              value={field.value ?? ""}
+              autoSize={{ minRows: 0, maxRows: 6 }}
+              onKeyDown={(e) => {
+                if (e.key == "Enter") {
+                  e.preventDefault();
+                  const newValue = `${field.value ?? ""}\n`;
+                  field.onChange(newValue);
+                }
+              }}
+            />
+          )}
+        />
+      </Form.Item>
+
+      <Form.Item
+        style={{ textAlign: "center", marginBottom: 8 }}
+        wrapperCol={{ span: 24 }}
+      >
+        <Button type="primary" htmlType="submit">
+          Sačuvaj
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+};
+
+export default ArrangementModalContent;

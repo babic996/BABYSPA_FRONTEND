@@ -8,3 +8,10 @@ export interface BabyInterface {
   motherName?: string | null;
   note?: string | null;
 }
+
+export interface DataStateBaby {
+  cursor: number;
+  babies: BabyInterface[];
+  totalElements?: number;
+  loading: boolean;
+}
