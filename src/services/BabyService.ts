@@ -5,7 +5,8 @@ import { FilterInterface } from "../interfaces/FilterInterface";
 
 export const getBabies = async (
   cursor: number | null,
-  filter: FilterInterface | null
+  filter: FilterInterface | null,
+  signal?: AbortSignal
 ) => {
   const request = baseRequest();
 
@@ -30,6 +31,7 @@ export const getBabies = async (
   const result = await request({
     url: `/baby/find-all?page=${cursor}&size=${DEFAULT_PAGE_SIZE}${filterString}`,
     method: "get",
+    signal,
   });
 
   return result?.data;

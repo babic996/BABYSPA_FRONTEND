@@ -13,12 +13,13 @@ export const getReservations = async (cursor: number | null) => {
   return result?.data;
 };
 
-export const getReservationsList = async () => {
+export const getReservationsList = async (signal?: AbortSignal) => {
   const request = baseRequest();
 
   const result = await request({
     url: "/reservation/find-all-list",
     method: "get",
+    signal,
   });
 
   return result?.data.data;

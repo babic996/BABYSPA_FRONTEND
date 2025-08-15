@@ -45,7 +45,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
   //------------------METHODS----------------
 
   const nextPage = (page: number) => {
-    setDataState((prev) => ({ ...prev, cursor: page }));
+    setDataState((prev) => ({ ...prev, cursor: page, loading: true }));
   };
 
   const handleEdit = async (record: ServicePackageInterface) => {

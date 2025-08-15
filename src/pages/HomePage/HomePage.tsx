@@ -41,6 +41,7 @@ import { getReservationSchema } from "../../validations/ReservationValidationSch
 import { handleApiError, monthNames } from "../../util/const";
 import AddButton from "../../components/ButtonComponents/AddButton";
 import useMediaQuery from "../../hooks/useMediaQuery";
+import useUpdateEffect from "../../hooks/useUpdateEffect";
 
 const HomePage = () => {
   const isModalOpen = useRef<boolean>(false);
@@ -53,6 +54,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const reservationSchema = getReservationSchema(isEditReservation);
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const [canFetch, setCanFetch] = useState<boolean>(false);
   const [visible, setVisible] = useState<boolean>(false);
 
   const {
@@ -68,18 +70,32 @@ const HomePage = () => {
   //------------------LIFECYCLE----------------
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchInitialData = async () => {
       try {
-        const [arrangementsRes, statusRes, reservationsRes] = await Promise.all(
-          [
-            getArrangementsList(),
-            getStatusList("reservation"),
-            getReservationsList(),
-          ]
-        );
+        const [arrangementsRes, statusRes] = await Promise.all([
+          getArrangementsList(),
+          getStatusList("reservation"),
+        ]);
         setArrangements(arrangementsRes);
         setStatus(statusRes);
-        setReservations(reservationsRes);
+      } catch (e) {
+        toastErrorNotification(handleApiError(e));
+      } finally {
+        setCanFetch(true);
+      }
+    };
+
+    fetchInitialData();
+  }, []);
+
+  useUpdateEffect(() => {
+    const abortController = new AbortController();
+
+    const fetchData = async () => {
+      try {
+        getReservationsList(abortController.signal).then((reservationsRes) =>
+          setReservations(reservationsRes)
+        );
       } catch (e) {
         toastErrorNotification(handleApiError(e));
       } finally {
@@ -87,8 +103,12 @@ const HomePage = () => {
       }
     };
 
-    fetchData();
-  }, []);
+    if (canFetch) fetchData();
+
+    return () => {
+      abortController.abort();
+    };
+  }, [canFetch]);
 
   //------------------METHODS----------------
 

@@ -1,3 +1,5 @@
+import axios from "axios";
+
 export const DEFAULT_PAGE_SIZE = 10;
 
 export const calendarMessages = {
@@ -12,15 +14,6 @@ export const calendarMessages = {
   time: "Vrijeme",
   event: "Događaj",
 };
-
-// export const errorResponse = (e: unknown) => {
-//   if (e instanceof AxiosError) {
-//     const errorMessage = e.response?.data?.message || "Došlo je do greške.";
-//     return toastErrorNotification(errorMessage);
-//   } else {
-//     return toastErrorNotification("Došlo je do greške.");
-//   }
-// };
 
 export const groupDataReportType = [
   { value: "day", name: "Grupiši rezultate po danu" },
@@ -53,13 +46,17 @@ export const monthNames = [
   "Decembar",
 ];
 
-export function handleApiError(error: unknown): string {
-  if (typeof error === "object" && error !== null) {
-    const err = error as { response?: { data?: { message?: string } } };
-    return err.response?.data?.message || "Zahtjev nije uspešno izvršen";
+export const handleApiError = (error: unknown): string => {
+  if (axios.isCancel(error)) {
+    return "";
   }
+
+  if (axios.isAxiosError(error)) {
+    return error.response?.data?.message ?? "Zahtjev nije uspešno izvršen";
+  }
+
   return "Došlo je do greške";
-}
+};
 
 export const descriptionRole = (role: string): string => {
   const roleName = role.replace("ROLE_", "");

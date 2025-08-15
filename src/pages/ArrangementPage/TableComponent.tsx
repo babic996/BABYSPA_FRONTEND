@@ -66,7 +66,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
   //------------------METHODS----------------
 
   const nextPage = (page: number) => {
-    setDataState((prev) => ({ ...prev, cursor: page }));
+    setDataState((prev) => ({ ...prev, cursor: page, loading: true }));
   };
 
   const handleEdit = (record: CreateOrUpdateArrangementInterface) => {
@@ -229,7 +229,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
       key: "note",
       render: (value) => {
         const previewText =
-          value?.length > 3 ? value.slice(0, 3) + "..." : value;
+          value?.length > 3 ? value?.slice(0, 3) + "..." : value;
 
         return (
           <span
@@ -390,7 +390,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
                 {
                   title: "Bilješka",
                   value: x.note ? x.note : "Nema podataka",
-                  isPreviewable: x.note && x.note.length > 3 ? true : false,
+                  isPreviewable: x.note && x.note?.length > 3 ? true : false,
                   onNoteClick: () => handleOpenInfoModal(x.note),
                 },
                 {

@@ -5,7 +5,8 @@ import { FilterInterface } from "../interfaces/FilterInterface";
 
 export const getArrangements = async (
   cursor: number | null,
-  filter: FilterInterface | null
+  filter: FilterInterface | null,
+  signal?: AbortSignal
 ) => {
   const request = baseRequest();
 
@@ -61,14 +62,18 @@ export const getArrangements = async (
   }
 
   const result = await request({
-    url: `/arrangement/find-all??${params.toString()}`,
+    url: `/arrangement/find-all?${params.toString()}`,
     method: "get",
+    signal,
   });
 
   return result?.data;
 };
 
-export const getArrangementsPrice = async (filter: FilterInterface | null) => {
+export const getArrangementsPrice = async (
+  filter: FilterInterface | null,
+  signal?: AbortSignal
+) => {
   const request = baseRequest();
   const params = new URLSearchParams();
 
@@ -119,6 +124,7 @@ export const getArrangementsPrice = async (filter: FilterInterface | null) => {
   const result = await request({
     url: `/arrangement/find-price?${params.toString()}`,
     method: "get",
+    signal,
   });
 
   return result?.data;

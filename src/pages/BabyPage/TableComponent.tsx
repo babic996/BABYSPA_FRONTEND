@@ -48,7 +48,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
   };
 
   const nextPage = (page: number) => {
-    setDataState((prev) => ({ ...prev, cursor: page }));
+    setDataState((prev) => ({ ...prev, cursor: page, loading: true }));
   };
 
   const handleEdit = (record: BabyInterface) => {
@@ -141,7 +141,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
       key: "note",
       render: (value) => {
         const previewText =
-          value.length > 3 ? value.slice(0, 3) + "..." : value;
+          value?.length > 3 ? value?.slice(0, 3) + "..." : value;
 
         return (
           <span

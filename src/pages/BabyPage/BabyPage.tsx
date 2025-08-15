@@ -27,6 +27,7 @@ const BabyPage = () => {
   const [isEditBaby, setIsEditBaby] = useState<boolean>(false);
   const schema = getBabyValidationSchema(isEditBaby);
   const { filter, showFilters, setShowFilters, onResetFilter } = useFilter();
+  const [canFetch, setCanFetch] = useState<boolean>(false);
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   const {
@@ -42,15 +43,20 @@ const BabyPage = () => {
 
   useEffect(() => {
     onResetFilter();
+    setCanFetch(true);
   }, []);
 
   useUpdateEffect(() => {
-    if (!filter) return;
+    const abortController = new AbortController();
 
     const fetchData = async () => {
       try {
         setDataState((prev) => ({ ...prev, loading: true }));
-        const result = await getBabies(dataState.cursor - 1, filter);
+        const result = await getBabies(
+          dataState.cursor - 1,
+          filter,
+          abortController.signal
+        );
         setDataState((prev) => ({
           ...prev,
           babies: result.data.content,
@@ -63,8 +69,12 @@ const BabyPage = () => {
       }
     };
 
-    fetchData();
-  }, [dataState.cursor, filter]);
+    if (canFetch) fetchData();
+
+    return () => {
+      abortController.abort();
+    };
+  }, [dataState.cursor, filter, canFetch]);
 
   useUpdateEffect(() => {
     if (dataState.cursor > 1) {

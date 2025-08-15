@@ -32,6 +32,7 @@ const ServicePackagePage = () => {
     useState<boolean>(false);
   const schema = getServicePackageValidationSchema(isEditServicePackage);
   const { filter, showFilters, setShowFilters, onResetFilter } = useFilter();
+  const [canFetch, setCanFetch] = useState<boolean>(false);
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   const {
@@ -47,15 +48,20 @@ const ServicePackagePage = () => {
 
   useEffect(() => {
     onResetFilter();
+    setCanFetch(true);
   }, []);
 
   useUpdateEffect(() => {
-    if (!filter) return;
+    const abortController = new AbortController();
 
     const fetchData = async () => {
       try {
         setDataState((prev) => ({ ...prev, loading: true }));
-        const result = await getServicePackages(dataState.cursor - 1, filter);
+        const result = await getServicePackages(
+          dataState.cursor - 1,
+          filter,
+          abortController.signal
+        );
         setDataState((prev) => ({
           ...prev,
           servicePackages: result.data.content,
@@ -68,8 +74,12 @@ const ServicePackagePage = () => {
       }
     };
 
-    fetchData();
-  }, [dataState.cursor, filter]);
+    if (canFetch) fetchData();
+
+    return () => {
+      abortController.abort();
+    };
+  }, [dataState.cursor, filter, canFetch]);
 
   useUpdateEffect(() => {
     if (dataState.cursor > 1) {

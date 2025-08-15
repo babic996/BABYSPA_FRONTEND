@@ -61,6 +61,7 @@ const ArrangementPage = () => {
     dropdownData.paymentTypes
   );
   const { filter, showFilters, setShowFilters, onResetFilter } = useFilter();
+  const [canFetch, setCanFetch] = useState<boolean>(false);
   const isMobile = useMediaQuery("(max-width: 1280px)");
 
   const {
@@ -109,6 +110,7 @@ const ArrangementPage = () => {
         toastErrorNotification(handleApiError(e));
       } finally {
         onResetFilter();
+        setCanFetch(true);
       }
     };
 
@@ -118,7 +120,6 @@ const ArrangementPage = () => {
   useEffect(() => {
     const fetchGiftCards = async () => {
       if (!selectedArrangementId) return;
-
       try {
         const res = await getGiftCardList(false, selectedArrangementId);
         setDropdownData((prev) => ({
@@ -135,13 +136,14 @@ const ArrangementPage = () => {
     fetchGiftCards();
   }, [selectedArrangementId, isEditArrangement]);
 
-  useEffect(() => {
-    if (!filter) return;
+  useUpdateEffect(() => {
+    const abortController = new AbortController();
+
     const fetchData = async () => {
       try {
         const [arrangements, arrangementsPrice] = await Promise.all([
-          getArrangements(dataState.cursor - 1, filter),
-          getArrangementsPrice(filter),
+          getArrangements(dataState.cursor - 1, filter, abortController.signal),
+          getArrangementsPrice(filter, abortController.signal),
         ]);
 
         setDataState((prev) => ({
@@ -149,16 +151,20 @@ const ArrangementPage = () => {
           arrangements: arrangements.data.content,
           totalSum: arrangementsPrice.data,
           totalElements: arrangements.data.totalElements,
+          loading: false,
         }));
       } catch (e) {
-        toastErrorNotification(handleApiError(e));
-      } finally {
         setDataState((prev) => ({ ...prev, loading: false }));
+        toastErrorNotification(handleApiError(e));
       }
     };
 
-    fetchData();
-  }, [filter, dataState.cursor]);
+    if (canFetch) fetchData();
+
+    return () => {
+      abortController.abort();
+    };
+  }, [filter, dataState.cursor, canFetch]);
 
   useUpdateEffect(() => {
     if (dataState.cursor > 1) {

@@ -14,15 +14,16 @@ export const toastSuccessNotification = (message: string) => {
 };
 
 export const toastErrorNotification = (message: string) => {
-  return toast.error(message, {
-    position: "top-right",
-    autoClose: 5000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-  });
+  if (message?.length > 0)
+    return toast.error(message, {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
 };
 
 export const toastWarningNotification = (message: string) => {
