@@ -124,25 +124,31 @@ const HomePage = () => {
 
   const handleDelete =
     (reservationId?: number | null) =>
-    (e: React.MouseEvent<HTMLElement> | undefined) => {
+    async (e: React.MouseEvent<HTMLElement> | undefined) => {
       e?.preventDefault();
-      if (reservationId) {
-        setLoading(true);
-        deleteReservation(reservationId).then(() => {
-          getReservationsList()
-            .then((result) => {
-              setLoading(false);
-              setReservations(result);
-              getArrangementsList().then((res) => setArrangements(res));
-              toastSuccessNotification("Obrisano!");
-            })
-            .catch((e) => {
-              setLoading(false);
-              toastErrorNotification(handleApiError(e));
-            });
-        });
+
+      if (!reservationId) {
+        isModalOpen.current = false;
+        return;
       }
-      isModalOpen.current = false;
+
+      setLoading(true);
+      try {
+        await deleteReservation(reservationId);
+
+        const result = await getReservationsList();
+        setReservations(result);
+
+        const arrangements = await getArrangementsList();
+        setArrangements(arrangements);
+
+        toastSuccessNotification("Obrisano!");
+      } catch (error) {
+        toastErrorNotification(handleApiError(error));
+      } finally {
+        setLoading(false);
+        isModalOpen.current = false;
+      }
     };
 
   const handleModalCancel = () => {

@@ -52,7 +52,7 @@ export const handleApiError = (error: unknown): string => {
   }
 
   if (axios.isAxiosError(error)) {
-    return error.response?.data?.message ?? "Zahtjev nije uspešno izvršen";
+    return error.response?.data?.message ?? "Zahtjev nije uspješno izvršen";
   }
 
   return "Došlo je do greške";
