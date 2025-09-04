@@ -23,6 +23,7 @@ import { groupDataReportType } from "../../util/const";
 import FilterButton from "../ButtonComponents/FilterButton";
 import { GiftCardInterface } from "../../interfaces/GiftCardInterface";
 import { getGiftCardList } from "../../services/GiftCardService";
+import { getArrangementsList } from "../../services/ArrangementService";
 const { RangePicker } = DatePicker;
 
 interface FilterComponentProps {
@@ -30,6 +31,7 @@ interface FilterComponentProps {
   showDatePicker?: boolean;
   showSelectBebies?: boolean;
   showSelectServicePackages?: boolean;
+  showArrangements?: boolean;
   showRangePicker?: boolean;
   showTimeInRangePicker?: boolean;
   showPriceSlider?: boolean;
@@ -50,6 +52,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
   showTimeInRangePicker = false,
   showPriceSlider = false,
   showSelectServicePackages = false,
+  showArrangements = false,
   showRemainingTerm = false,
   showStatusSelect = false,
   showPaymentTypeSelect = false,
@@ -64,6 +67,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
   const [servicePackages, setServicePackages] = useState<
     ShortDetailsInterface[]
   >([]);
+  const [arrangements, setArrangements] = useState<ShortDetailsInterface[]>([]);
   const [paymentType, setPaymentType] = useState<PaymentTypeInterface[]>([]);
   const [statuses, setStatuses] = useState<StatusInterface[]>([]);
   const [giftCards, setGiftCards] = useState<GiftCardInterface[]>([]);
@@ -74,6 +78,9 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
     }
     if (showSelectServicePackages) {
       getServicePackagesList().then((res) => setServicePackages(res));
+    }
+    if (showArrangements) {
+      getArrangementsList().then((res) => setArrangements(res));
     }
     if (showPaymentTypeSelect) {
       getPaymentTypeList().then((res) => setPaymentType(res));
@@ -268,6 +275,39 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
             }
           >
             {servicePackages?.map((x) => (
+              <Select.Option key={x.id} value={x.id}>
+                {x.value}
+              </Select.Option>
+            ))}
+          </Select>
+        </Col>
+      )}
+      {showArrangements && (
+        <Col xs={24} sm={12} md={8} lg={6} xl={4}>
+          <Select
+            placeholder="Odaberi aranžman"
+            showSearch
+            allowClear
+            status="warning"
+            value={filter.arrangementId}
+            style={{ width: "100%" }}
+            filterOption={(input, option) => {
+              if (option && option.children) {
+                const childrenString = Array.isArray(option.children)
+                  ? option.children.join("")
+                  : option.children;
+                return (
+                  typeof childrenString === "string" &&
+                  childrenString.toLowerCase().includes(input.toLowerCase())
+                );
+              }
+              return false;
+            }}
+            onChange={(value) =>
+              setFilter((prev) => ({ ...prev, arrangementId: value }))
+            }
+          >
+            {arrangements?.map((x) => (
               <Select.Option key={x.id} value={x.id}>
                 {x.value}
               </Select.Option>

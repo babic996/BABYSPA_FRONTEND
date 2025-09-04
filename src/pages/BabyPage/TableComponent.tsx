@@ -13,6 +13,7 @@ import InfoModal from "../../components/InfoModal/InfoModal";
 import React, { MutableRefObject, useRef, useState } from "react";
 import { UseFormReset } from "react-hook-form";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useFilter } from "../../context/Filter/useFilter";
 
 interface TableComponentProps {
   setIsEditBaby: React.Dispatch<React.SetStateAction<boolean>>;
@@ -33,6 +34,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
 }) => {
   const [currentNote, setCurrentNote] = useState<string>("");
   const isInfoModalVisible = useRef<boolean>(false);
+  const { onResetFilter } = useFilter();
 
   //------------------METHODS----------------
 
@@ -78,6 +80,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
           totalElements: result.data.totalElements,
         }));
         toastSuccessNotification("Obrisano!");
+        onResetFilter();
       } catch (e) {
         toastErrorNotification(handleApiError(e));
       } finally {

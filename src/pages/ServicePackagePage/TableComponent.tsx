@@ -19,6 +19,7 @@ import {
   getServicePackages,
 } from "../../services/ServicePackageService";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useFilter } from "../../context/Filter/useFilter";
 
 interface TableComponentProps {
   setIsEditServicePackage: React.Dispatch<React.SetStateAction<boolean>>;
@@ -41,6 +42,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
 }) => {
   const isInfoModalVisible = useRef<boolean>(false);
   const [currentNote, setCurrentNote] = useState<string>("");
+  const { onResetFilter } = useFilter();
 
   //------------------METHODS----------------
 
@@ -81,6 +83,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
           totalElements: result.data.totalElements,
         }));
         toastSuccessNotification("Obrisano!");
+        onResetFilter();
       } catch (e) {
         toastErrorNotification(handleApiError(e));
       } finally {

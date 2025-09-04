@@ -23,6 +23,7 @@ import {
   editArrangement,
   getArrangements,
 } from "../../services/ArrangementService";
+import { useFilter } from "../../context/Filter/useFilter";
 
 interface ArrangementModalContentProps {
   disableEditField: boolean;
@@ -55,6 +56,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
   setValue,
   isModalOpen,
 }) => {
+  const { onResetFilter } = useFilter();
   const onSubmit: SubmitHandler<CreateOrUpdateArrangementInterface> = async (
     data
   ) => {
@@ -85,6 +87,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
           }));
           isModalOpen.current = false;
           toastSuccessNotification("Ažurirano!");
+          onResetFilter();
         }
       } else {
         const res = await addArrangement(data);
@@ -97,6 +100,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
         }));
         isModalOpen.current = false;
         toastSuccessNotification("Sačuvano!");
+        onResetFilter();
       }
     } catch (e) {
       toastErrorNotification(handleApiError(e));

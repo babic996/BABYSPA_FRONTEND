@@ -10,6 +10,7 @@ import {
   Row,
   Col,
   Tag,
+  Space,
 } from "antd";
 import { DatePicker as DatePickerMobile } from "antd-mobile";
 import "./HomePage.scss";
@@ -17,7 +18,9 @@ import CalendarComponent from "../../components/CalendarComponent/CalendarCompon
 import { useEffect, useRef, useState } from "react";
 import {
   CreateOrUpdateReservationInterface,
+  DataStateReservation,
   OverviewReservationInterface,
+  TableReservationInterface,
 } from "../../interfaces/ReservationInterface";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { getStatusList } from "../../services/StatusService";
@@ -26,6 +29,7 @@ import {
   deleteReservation,
   editReservation,
   getReservationsList,
+  getReservationsTable,
 } from "../../services/ReservationServices";
 import { StatusInterface } from "../../interfaces/StatusInterface";
 import { ShortDetailsInterface } from "../../interfaces/ShortDetails";
@@ -42,6 +46,8 @@ import { handleApiError, monthNames } from "../../util/const";
 import AddButton from "../../components/ButtonComponents/AddButton";
 import useMediaQuery from "../../hooks/useMediaQuery";
 import useUpdateEffect from "../../hooks/useUpdateEffect";
+import TableComponent from "./TableComponent";
+import { useFilter } from "../../context/Filter/useFilter";
 
 const HomePage = () => {
   const isModalOpen = useRef<boolean>(false);
@@ -50,12 +56,20 @@ const HomePage = () => {
   const [reservations, setReservations] = useState<
     OverviewReservationInterface[]
   >([]);
+  const [dataState, setDataState] = useState<DataStateReservation>({
+    cursor: 1,
+    reservations: [] as TableReservationInterface[],
+    totalElements: undefined as number | undefined,
+    loading: true,
+  });
   const [arrangements, setArrangements] = useState<ShortDetailsInterface[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const reservationSchema = getReservationSchema(isEditReservation);
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [canFetch, setCanFetch] = useState<boolean>(false);
   const [visible, setVisible] = useState<boolean>(false);
+  const [tableView, setTableView] = useState<boolean>(false);
+  const { filter, onResetFilter } = useFilter();
 
   const {
     control,
@@ -82,6 +96,7 @@ const HomePage = () => {
         toastErrorNotification(handleApiError(e));
       } finally {
         setCanFetch(true);
+        onResetFilter();
       }
     };
 
@@ -110,6 +125,36 @@ const HomePage = () => {
     };
   }, [canFetch]);
 
+  useUpdateEffect(() => {
+    const abortController = new AbortController();
+
+    const fetchData = async () => {
+      try {
+        setDataState((prev) => ({ ...prev, loading: true }));
+        const result = await getReservationsTable(
+          dataState.cursor - 1,
+          filter,
+          abortController.signal
+        );
+        setDataState((prev) => ({
+          ...prev,
+          reservations: result.data.content,
+          totalElements: result.data.totalElements,
+        }));
+      } catch (e) {
+        toastErrorNotification(handleApiError(e));
+      } finally {
+        setDataState((prev) => ({ ...prev, loading: false }));
+      }
+    };
+
+    if (canFetch && tableView) fetchData();
+
+    return () => {
+      abortController.abort();
+    };
+  }, [dataState.cursor, filter, canFetch, tableView]);
+
   //------------------METHODS----------------
 
   const handleEdit = (record: CreateOrUpdateReservationInterface) => {
@@ -122,34 +167,41 @@ const HomePage = () => {
     isModalOpen.current = true;
   };
 
-  const handleDelete =
-    (reservationId?: number | null) =>
-    async (e: React.MouseEvent<HTMLElement> | undefined) => {
-      e?.preventDefault();
+  const handleDelete = async (reservationId?: number | null) => {
+    if (!reservationId) {
+      isModalOpen.current = false;
+      return;
+    }
 
-      if (!reservationId) {
-        isModalOpen.current = false;
-        return;
-      }
+    setLoading(true);
+    try {
+      await deleteReservation(reservationId);
 
-      setLoading(true);
-      try {
-        await deleteReservation(reservationId);
+      const resultCalendarView = await getReservationsList();
+      setReservations(resultCalendarView);
 
-        const result = await getReservationsList();
-        setReservations(result);
+      const resultTableView = await getReservationsTable(
+        dataState.cursor - 1,
+        null
+      );
 
-        const arrangements = await getArrangementsList();
-        setArrangements(arrangements);
+      setDataState((prev) => ({
+        ...prev,
+        reservations: resultTableView.data.content,
+        totalElements: resultTableView.data.totalElements,
+      }));
 
-        toastSuccessNotification("Obrisano!");
-      } catch (error) {
-        toastErrorNotification(handleApiError(error));
-      } finally {
-        setLoading(false);
-        isModalOpen.current = false;
-      }
-    };
+      const arrangements = await getArrangementsList();
+      setArrangements(arrangements);
+
+      toastSuccessNotification("Obrisano!");
+    } catch (error) {
+      toastErrorNotification(handleApiError(error));
+    } finally {
+      setLoading(false);
+      isModalOpen.current = false;
+    }
+  };
 
   const handleModalCancel = () => {
     reset({
@@ -177,6 +229,10 @@ const HomePage = () => {
     isModalOpen.current = true;
   };
 
+  const nextPage = (page: number) => {
+    setDataState((prev) => ({ ...prev, cursor: page, loading: true }));
+  };
+
   const onSubmit: SubmitHandler<CreateOrUpdateReservationInterface> = async (
     data
   ) => {
@@ -191,10 +247,19 @@ const HomePage = () => {
               : item
           )
         );
+        setDataState((prev) => ({
+          ...prev,
+          reservations: prev.reservations.map((item) =>
+            item.reservationId === data.reservationId
+              ? { ...item, ...res.data.data }
+              : item
+          ),
+        }));
         isModalOpen.current = false;
         const arrangements = await getArrangementsList();
         setArrangements(arrangements);
         toastSuccessNotification("Ažurirano!");
+        onResetFilter();
       } catch (e) {
         toastErrorNotification(handleApiError(e));
       } finally {
@@ -203,14 +268,27 @@ const HomePage = () => {
     } else {
       try {
         await addReservation(data);
-        const result = await getReservationsList();
-        setReservations(result);
+
+        const resultCalendarView = await getReservationsList();
+        setReservations(resultCalendarView);
+
+        const resultTableView = await getReservationsTable(
+          dataState.cursor - 1,
+          null
+        );
+
+        setDataState((prev) => ({
+          ...prev,
+          reservations: resultTableView.data.content,
+          totalElements: resultTableView.data.totalElements,
+        }));
 
         const arrangements = await getArrangementsList();
         setArrangements(arrangements);
 
         isModalOpen.current = false;
         toastSuccessNotification("Sačuvano!");
+        onResetFilter();
       } catch (e) {
         toastErrorNotification(handleApiError(e));
       } finally {
@@ -428,7 +506,7 @@ const HomePage = () => {
                     description="Da li želite da izbrišete rezervaciju?"
                     okText="Da"
                     cancelText="Ne"
-                    onConfirm={handleDelete(getValues("reservationId"))}
+                    onConfirm={() => handleDelete(getValues("reservationId"))}
                   >
                     <Button type="default" danger>
                       Obriši
@@ -442,42 +520,53 @@ const HomePage = () => {
       </Modal>
       {loading && <FullPageSpiner />}
       <div className="container">
-        <Row align="middle" style={{ marginBottom: 10 }}>
-          <Col xs={24} sm={24} md={6}>
+        <Row
+          align="middle"
+          justify="space-between"
+          style={{ marginBottom: 10 }}
+        >
+          <Col>
             <AddButton
               buttonTitle="Dodaj rezervaciju"
               onButtonAction={handleCreateModal}
             />
           </Col>
-
-          <Col>
-            <Row
-              justify="start"
-              align="top"
-              gutter={[2, 6]}
-              style={{ marginTop: 4 }}
-            >
-              <Col xs={12} sm={12} md={6} lg={6}>
+          {!tableView && (
+            <Col flex="auto" style={{ textAlign: "center" }}>
+              <Space size={[8, 8]} wrap={false}>
                 <Tag color="#16c9d3">Rezervisan termin</Tag>
-              </Col>
-              <Col xs={12} sm={12} md={6} lg={6}>
                 <Tag color="#f40511">Otkazan termin</Tag>
-              </Col>
-              <Col xs={12} sm={12} md={6} lg={6}>
                 <Tag color="#4caf50">Iskorišten termin</Tag>
-              </Col>
-              <Col xs={12} sm={12} md={6} lg={6}>
                 <Tag color="#ff660d">Termin nije iskorišten</Tag>
-              </Col>
-            </Row>
+              </Space>
+            </Col>
+          )}
+          <Col>
+            <Button
+              type="primary"
+              onClick={() => setTableView((prev) => !prev)}
+            >
+              {!tableView ? "Tabelarni prikaz" : "Prikaz na kalendaru"}
+            </Button>
           </Col>
         </Row>
 
         <div className="calendar-wrapper">
-          <CalendarComponent
-            reservations={reservations}
-            onEventClick={handleEdit}
-          />
+          {tableView && (
+            <TableComponent
+              isMobile={isMobile}
+              handleDelete={handleDelete}
+              handleEdit={handleEdit}
+              dataState={dataState}
+              nextPage={nextPage}
+            />
+          )}
+          {!tableView && (
+            <CalendarComponent
+              reservations={reservations}
+              onEventClick={handleEdit}
+            />
+          )}
         </div>
       </div>
     </>

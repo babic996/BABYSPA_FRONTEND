@@ -21,6 +21,7 @@ import {
   ServicePackageInterface,
 } from "../../interfaces/ServicePackageInterface";
 import { Button, Form, Input, InputNumber } from "antd";
+import { useFilter } from "../../context/Filter/useFilter";
 
 interface ServicePackageModalContentProps {
   isEditServicePackage: boolean;
@@ -43,6 +44,7 @@ const ServicePackageModalContent: React.FC<ServicePackageModalContentProps> = ({
   isModalOpen,
   setDataState,
 }) => {
+  const { onResetFilter } = useFilter();
   const onSubmit: SubmitHandler<ServicePackageInterface> = async (data) => {
     setDataState((prev) => ({ ...prev, loading: true }));
     try {
@@ -58,6 +60,7 @@ const ServicePackageModalContent: React.FC<ServicePackageModalContentProps> = ({
         }));
         isModalOpen.current = false;
         toastSuccessNotification("Ažurirano!");
+        onResetFilter();
       } else {
         await addServicePackage(data);
         const result = await getServicePackages(dataState.cursor - 1, null);
@@ -68,6 +71,7 @@ const ServicePackageModalContent: React.FC<ServicePackageModalContentProps> = ({
         }));
         isModalOpen.current = false;
         toastSuccessNotification("Sačuvano!");
+        onResetFilter();
       }
     } catch (e) {
       toastErrorNotification(handleApiError(e));

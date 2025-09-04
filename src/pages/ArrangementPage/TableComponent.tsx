@@ -32,6 +32,7 @@ import InfoModal from "../../components/InfoModal/InfoModal";
 import ReservationInfoModal from "../../components/ReservationInfoModal/ReservationInfoModal";
 import { ReservationShortDetailsInterface } from "../../interfaces/ReservationShortDetailsInterface";
 import { ColumnsType } from "antd/es/table";
+import { useFilter } from "../../context/Filter/useFilter";
 
 interface TableComponentProps {
   setIsEditArrangement: React.Dispatch<React.SetStateAction<boolean>>;
@@ -62,6 +63,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
     ReservationShortDetailsInterface[]
   >([]);
   const [currentNote, setCurrentNote] = useState<string>("");
+  const { onResetFilter } = useFilter();
 
   //------------------METHODS----------------
 
@@ -116,8 +118,8 @@ const TableComponent: React.FC<TableComponentProps> = ({
           totalElements: result.data.totalElements,
           totalSum: prev.totalSum - price,
         }));
-
         toastSuccessNotification("Obrisano!");
+        onResetFilter();
       } catch (e) {
         toastErrorNotification(handleApiError(e));
       } finally {

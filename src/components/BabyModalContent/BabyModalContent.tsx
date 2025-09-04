@@ -15,6 +15,7 @@ import { handleApiError } from "../../util/const";
 import { addBaby, editBaby, getBabies } from "../../services/BabyService";
 import { Button, DatePicker, Form, Input, InputNumber } from "antd";
 import dayjs from "dayjs";
+import { useFilter } from "../../context/Filter/useFilter";
 
 interface BabyModalContentProps {
   isEditBaby: boolean;
@@ -35,6 +36,7 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
   isModalOpen,
   setDataState,
 }) => {
+  const { onResetFilter } = useFilter();
   const onSubmit: SubmitHandler<BabyInterface> = async (data) => {
     setDataState((prev) => ({ ...prev, loading: true }));
     try {
@@ -48,6 +50,7 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
         }));
         isModalOpen.current = false;
         toastSuccessNotification("Ažurirano!");
+        onResetFilter();
       } else {
         await addBaby(data);
         const result = await getBabies(dataState.cursor - 1, null);
@@ -58,6 +61,7 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
         }));
         isModalOpen.current = false;
         toastSuccessNotification("Sačuvano!");
+        onResetFilter();
       }
     } catch (e) {
       toastErrorNotification(handleApiError(e));
