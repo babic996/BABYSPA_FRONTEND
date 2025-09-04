@@ -44,7 +44,7 @@ req.interceptors.request.use(
       if (window.location.hostname == "localhost") {
         window.location.href = "http://localhost:5173/login";
       } else {
-        window.location.href = `http://${window.location.hostname}:3000/login`;
+        window.location.href = `https://${window.location.hostname}/login`;
       }
     }
 
@@ -69,7 +69,7 @@ req.interceptors.response.use(
       if (window.location.hostname == "localhost") {
         window.location.href = "http://localhost:5173/login";
       } else {
-        window.location.href = `http://${window.location.hostname}:3000/login`;
+        window.location.href = `https://${window.location.hostname}/login`;
       }
     }
     return Promise.reject(error);
