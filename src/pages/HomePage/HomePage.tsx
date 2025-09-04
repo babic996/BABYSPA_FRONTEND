@@ -68,7 +68,7 @@ const HomePage = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [canFetch, setCanFetch] = useState<boolean>(false);
   const [visible, setVisible] = useState<boolean>(false);
-  const [tableView, setTableView] = useState<boolean>(false);
+  const [isTableView, setIsTableView] = useState<boolean>(false);
   const { filter, onResetFilter } = useFilter();
 
   const {
@@ -108,9 +108,10 @@ const HomePage = () => {
 
     const fetchData = async () => {
       try {
-        getReservationsList(abortController.signal).then((reservationsRes) =>
-          setReservations(reservationsRes)
+        const reservationsRes = await getReservationsList(
+          abortController.signal
         );
+        setReservations(reservationsRes);
       } catch (e) {
         toastErrorNotification(handleApiError(e));
       } finally {
@@ -118,7 +119,9 @@ const HomePage = () => {
       }
     };
 
-    if (canFetch) fetchData();
+    if (canFetch) {
+      fetchData();
+    }
 
     return () => {
       abortController.abort();
@@ -148,12 +151,12 @@ const HomePage = () => {
       }
     };
 
-    if (canFetch && tableView) fetchData();
+    if (canFetch && isTableView) fetchData();
 
     return () => {
       abortController.abort();
     };
-  }, [dataState.cursor, filter, canFetch, tableView]);
+  }, [dataState.cursor, filter, canFetch, isTableView]);
 
   //------------------METHODS----------------
 
@@ -518,56 +521,60 @@ const HomePage = () => {
           </Form.Item>
         </Form>
       </Modal>
-      {loading && <FullPageSpiner />}
       <div className="container">
-        <Row
-          align="middle"
-          justify="space-between"
-          style={{ marginBottom: 10 }}
-        >
-          <Col>
-            <AddButton
-              buttonTitle="Dodaj rezervaciju"
-              onButtonAction={handleCreateModal}
-            />
-          </Col>
-          {!tableView && (
-            <Col flex="auto" style={{ textAlign: "center" }}>
-              <Space size={[8, 8]} wrap={false}>
-                <Tag color="#16c9d3">Rezervisan termin</Tag>
-                <Tag color="#f40511">Otkazan termin</Tag>
-                <Tag color="#4caf50">Iskorišten termin</Tag>
-                <Tag color="#ff660d">Termin nije iskorišten</Tag>
-              </Space>
-            </Col>
-          )}
-          <Col>
-            <Button
-              type="primary"
-              onClick={() => setTableView((prev) => !prev)}
+        {loading && <FullPageSpiner />}
+        {!loading && (
+          <>
+            <Row
+              align="middle"
+              justify="space-between"
+              style={{ marginBottom: 10 }}
             >
-              {!tableView ? "Tabelarni prikaz" : "Prikaz na kalendaru"}
-            </Button>
-          </Col>
-        </Row>
+              <Col>
+                <AddButton
+                  buttonTitle="Dodaj rezervaciju"
+                  onButtonAction={handleCreateModal}
+                />
+              </Col>
+              {!isTableView && (
+                <Col flex="auto" style={{ textAlign: "center" }}>
+                  <Space size={[8, 8]} wrap={false}>
+                    <Tag color="#16c9d3">Rezervisan termin</Tag>
+                    <Tag color="#f40511">Otkazan termin</Tag>
+                    <Tag color="#4caf50">Iskorišten termin</Tag>
+                    <Tag color="#ff660d">Termin nije iskorišten</Tag>
+                  </Space>
+                </Col>
+              )}
+              <Col>
+                <Button
+                  type="primary"
+                  onClick={() => setIsTableView((prev) => !prev)}
+                >
+                  {!isTableView ? "Tabelarni prikaz" : "Prikaz na kalendaru"}
+                </Button>
+              </Col>
+            </Row>
 
-        <div className="calendar-wrapper">
-          {tableView && (
-            <TableComponent
-              isMobile={isMobile}
-              handleDelete={handleDelete}
-              handleEdit={handleEdit}
-              dataState={dataState}
-              nextPage={nextPage}
-            />
-          )}
-          {!tableView && (
-            <CalendarComponent
-              reservations={reservations}
-              onEventClick={handleEdit}
-            />
-          )}
-        </div>
+            <div className="calendar-wrapper">
+              {isTableView && (
+                <TableComponent
+                  isMobile={isMobile}
+                  handleDelete={handleDelete}
+                  handleEdit={handleEdit}
+                  dataState={dataState}
+                  nextPage={nextPage}
+                />
+              )}
+              {!isTableView && (
+                <CalendarComponent
+                  reservations={reservations}
+                  onEventClick={handleEdit}
+                />
+              )}
+            </div>
+          </>
+        )}
       </div>
     </>
   );
