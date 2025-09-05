@@ -20,7 +20,7 @@ const LoginComponent = () => {
   } = useForm<LoginInterface>({
     resolver: yupResolver(schema),
   });
-  const { isAuthenticated, isTokenExpiried } = useAuth();
+  const { tokenExists, isTokenExpired } = useAuth();
   const navigate = useNavigate();
 
   const { login } = useAuth();
@@ -36,12 +36,12 @@ const LoginComponent = () => {
   };
 
   useEffect(() => {
-    if (isAuthenticated && !isTokenExpiried()) {
+    if (tokenExists() && !isTokenExpired()) {
       navigate("/");
     }
-  }, [isAuthenticated, isTokenExpiried]);
+  }, [tokenExists(), isTokenExpired]);
 
-  if (isAuthenticated && !isTokenExpiried()) {
+  if (tokenExists() && !isTokenExpired()) {
     return null;
   }
 
