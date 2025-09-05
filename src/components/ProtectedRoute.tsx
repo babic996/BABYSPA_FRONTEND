@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/Auth/useAuth";
 
@@ -8,32 +8,16 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const { isAuthenticated, userRoles, isTokenExpiried } = useAuth();
-  const [loading, setLoading] = useState<boolean>(true);
+  const { userRoles, isTokenExpired, logoutUser, tokenExists } = useAuth();
 
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      if (isAuthenticated == undefined) {
-        setLoading(true);
-      } else {
-        setLoading(false);
-      }
-    };
-
-    checkAuthStatus();
-  }, [isAuthenticated]);
-
-  if (loading) {
-    return null;
-  }
-
-  if (!isAuthenticated && isTokenExpiried()) {
-    return <Navigate to="/login" />;
+  if (!tokenExists() || isTokenExpired()) {
+    logoutUser();
+    return <Navigate to="/login" replace />;
   }
 
   const hasAccess = allowedRoles.some((role) => userRoles().includes(role));
 
-  if (!hasAccess) {
+  if (!hasAccess && allowedRoles.length > 0) {
     return <Navigate to="/not-authorized" />;
   }
 

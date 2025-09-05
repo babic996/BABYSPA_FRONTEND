@@ -20,7 +20,6 @@ import SettingsPage from "./pages/SettingsPage/SettingsPage";
 
 function App() {
   return (
-    // <ConfigProvider locale={}>
     <ConfigProviderMobile locale={enUS}>
       <AuthProvider>
         <ToastContainer />
@@ -28,7 +27,16 @@ function App() {
           <Router>
             <Routes>
               <Route path="/login" element={<LoginComponent />} />
-              <Route path="/" element={<Layout />}>
+
+              {/* ProtectedRoute samo za token / autentikaciju */}
+              <Route
+                path="/*"
+                element={
+                  <ProtectedRoute allowedRoles={[]}>
+                    <Layout />
+                  </ProtectedRoute>
+                }
+              >
                 <Route
                   index
                   element={
@@ -44,7 +52,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="/baby"
+                  path="baby"
                   element={
                     <ProtectedRoute
                       allowedRoles={[
@@ -58,7 +66,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="/service-package"
+                  path="service-package"
                   element={
                     <ProtectedRoute
                       allowedRoles={[
@@ -72,7 +80,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="/arrangement"
+                  path="arrangement"
                   element={
                     <ProtectedRoute
                       allowedRoles={[
@@ -86,7 +94,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="/report"
+                  path="report"
                   element={
                     <ProtectedRoute
                       allowedRoles={[
@@ -100,7 +108,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="/settings"
+                  path="settings"
                   element={
                     <ProtectedRoute
                       allowedRoles={[ROLES.ADMIN, ROLES.SUPER_ADMIN]}
@@ -109,7 +117,7 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route path="/not-authorized" element={<NotAuthorizedPage />} />
+                <Route path="not-authorized" element={<NotAuthorizedPage />} />
                 <Route path="*" element={<PageNotFound />} />
               </Route>
             </Routes>
@@ -117,7 +125,6 @@ function App() {
         </FilterProvider>
       </AuthProvider>
     </ConfigProviderMobile>
-    // </ConfigProvider>
   );
 }
 

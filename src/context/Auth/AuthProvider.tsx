@@ -5,11 +5,11 @@ import { UserInterface } from "../../interfaces/UserInterface";
 interface AuthContextInterface {
   token: string | null;
   login: (token: string) => void;
-  isTokenExpiried: () => boolean;
+  isTokenExpired: () => boolean;
+  tokenExists: () => boolean;
   logoutUser: () => void;
   getUserInfo: () => UserInterface | null;
   userRoles: () => string[];
-  isAuthenticated: boolean;
 }
 
 export const AuthContext = createContext<AuthContextInterface | undefined>(
@@ -64,9 +64,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem("babyspa-token");
   };
 
-  const isAuthenticated = !!localStorage.getItem("babyspa-token");
+  const tokenExists = (): boolean => {
+    return !!localStorage.getItem("babyspa-token");
+  };
 
-  const isTokenExpiried = (): boolean => {
+  const isTokenExpired = (): boolean => {
     try {
       const token = localStorage.getItem("babyspa-token");
       if (!token) {
@@ -88,10 +90,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         token,
         getUserInfo,
         login,
-        isTokenExpiried,
+        isTokenExpired,
         logoutUser,
         userRoles,
-        isAuthenticated,
+        tokenExists,
       }}
     >
       {children}
