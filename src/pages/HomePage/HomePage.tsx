@@ -11,6 +11,7 @@ import {
   Col,
   Tag,
   Space,
+  Popover,
 } from "antd";
 import { DatePicker as DatePickerMobile } from "antd-mobile";
 import "./HomePage.scss";
@@ -48,6 +49,7 @@ import useMediaQuery from "../../hooks/useMediaQuery";
 import useUpdateEffect from "../../hooks/useUpdateEffect";
 import TableComponent from "./TableComponent";
 import { useFilter } from "../../context/Filter/useFilter";
+import { FaInfoCircle } from "react-icons/fa";
 
 const HomePage = () => {
   const isModalOpen = useRef<boolean>(false);
@@ -525,36 +527,81 @@ const HomePage = () => {
         {loading && <FullPageSpiner />}
         {!loading && (
           <>
-            <Row
-              align="middle"
-              justify="space-between"
-              style={{ marginBottom: 10 }}
-            >
-              <Col>
-                <AddButton
-                  buttonTitle="Dodaj rezervaciju"
-                  onButtonAction={handleCreateModal}
-                />
-              </Col>
-              {!isTableView && (
-                <Col flex="auto" style={{ textAlign: "center" }}>
-                  <Space size={[8, 8]} wrap={false}>
-                    <Tag color="#16c9d3">Rezervisan termin</Tag>
-                    <Tag color="#f40511">Otkazan termin</Tag>
-                    <Tag color="#4caf50">Iskorišten termin</Tag>
-                    <Tag color="#ff660d">Termin nije iskorišten</Tag>
-                  </Space>
-                </Col>
-              )}
-              <Col>
-                <Button
-                  type="primary"
-                  onClick={() => setIsTableView((prev) => !prev)}
+            {isMobile ? (
+              <>
+                <Row
+                  align="middle"
+                  justify="space-between"
+                  style={{ marginBottom: 10 }}
                 >
-                  {!isTableView ? "Tabelarni prikaz" : "Prikaz na kalendaru"}
-                </Button>
-              </Col>
-            </Row>
+                  <Col>
+                    <AddButton
+                      buttonTitle="Dodaj rezervaciju"
+                      onButtonAction={handleCreateModal}
+                    />
+                  </Col>
+
+                  <Col>
+                    {!isTableView && (
+                      <Popover
+                        content={
+                          <Space direction="vertical">
+                            <Tag color="#16c9d3">Rezervisan termin</Tag>
+                            <Tag color="#f40511">Otkazan termin</Tag>
+                            <Tag color="#4caf50">Iskorišten termin</Tag>
+                            <Tag color="#ff660d">Termin nije iskorišten</Tag>
+                          </Space>
+                        }
+                      >
+                        <Button type="text" icon={<FaInfoCircle size={18} />} />
+                      </Popover>
+                    )}
+                  </Col>
+
+                  <Col>
+                    <Button
+                      type="primary"
+                      onClick={() => setIsTableView((prev) => !prev)}
+                    >
+                      {!isTableView
+                        ? "Tabelarni prikaz"
+                        : "Prikaz na kalendaru"}
+                    </Button>
+                  </Col>
+                </Row>
+              </>
+            ) : (
+              <Row
+                align="middle"
+                justify="space-between"
+                style={{ marginBottom: 10 }}
+              >
+                <Col>
+                  <AddButton
+                    buttonTitle="Dodaj rezervaciju"
+                    onButtonAction={handleCreateModal}
+                  />
+                </Col>
+                {!isTableView && (
+                  <Col flex="auto" style={{ textAlign: "center" }}>
+                    <Space size={[8, 8]} wrap={false}>
+                      <Tag color="#16c9d3">Rezervisan termin</Tag>
+                      <Tag color="#f40511">Otkazan termin</Tag>
+                      <Tag color="#4caf50">Iskorišten termin</Tag>
+                      <Tag color="#ff660d">Termin nije iskorišten</Tag>
+                    </Space>
+                  </Col>
+                )}
+                <Col>
+                  <Button
+                    type="primary"
+                    onClick={() => setIsTableView((prev) => !prev)}
+                  >
+                    {!isTableView ? "Tabelarni prikaz" : "Prikaz na kalendaru"}
+                  </Button>
+                </Col>
+              </Row>
+            )}
 
             <div className="calendar-wrapper">
               {isTableView && (
