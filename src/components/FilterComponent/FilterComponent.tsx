@@ -24,6 +24,7 @@ import FilterButton from "../ButtonComponents/FilterButton";
 import { GiftCardInterface } from "../../interfaces/GiftCardInterface";
 import { getGiftCardList } from "../../services/GiftCardService";
 import { getArrangementsList } from "../../services/ArrangementService";
+import { useTranslation } from "react-i18next";
 const { RangePicker } = DatePicker;
 
 interface FilterComponentProps {
@@ -71,6 +72,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
   const [paymentType, setPaymentType] = useState<PaymentTypeInterface[]>([]);
   const [statuses, setStatuses] = useState<StatusInterface[]>([]);
   const [giftCards, setGiftCards] = useState<GiftCardInterface[]>([]);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (showSelectBebies) {
@@ -155,7 +157,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
       {showSearch && (
         <Col xs={24} sm={12} md={8} lg={6} xl={4}>
           <Input
-            placeholder="Pretraži..."
+            placeholder={t("common.searching")}
             status="warning"
             value={searchText}
             onChange={handleInputChange}
@@ -165,7 +167,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
       {showArrangementIdSearch && (
         <Col xs={24} sm={12} md={8} lg={6} xl={4}>
           <InputNumber
-            placeholder="ID aranžmana..."
+            placeholder={t("table.arrangementId")}
             status="warning"
             min={1}
             step={1}
@@ -178,7 +180,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
       {showRemainingTerm && (
         <Col xs={24} sm={12} md={8} lg={6} xl={4}>
           <InputNumber
-            placeholder="Preostalo termina..."
+            placeholder={t("table.remainingTerm")}
             status="warning"
             min={0}
             style={{ width: "100%" }}
@@ -219,7 +221,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
       {showSelectBebies && (
         <Col xs={24} sm={12} md={8} lg={6} xl={4}>
           <Select
-            placeholder="Odaberi bebu"
+            placeholder={t("modal.selectBaby")}
             showSearch
             allowClear
             value={filter.babyId}
@@ -252,7 +254,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
       {showSelectServicePackages && (
         <Col xs={24} sm={12} md={8} lg={6} xl={4}>
           <Select
-            placeholder="Odaberi paket usluge"
+            placeholder={t("modal.selectServicePackage")}
             showSearch
             allowClear
             status="warning"
@@ -285,7 +287,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
       {showArrangements && (
         <Col xs={24} sm={12} md={8} lg={6} xl={4}>
           <Select
-            placeholder="Odaberi aranžman"
+            placeholder={t("modal.selectArrangement")}
             showSearch
             allowClear
             status="warning"
@@ -318,7 +320,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
       {showPaymentTypeSelect && (
         <Col xs={24} sm={12} md={8} lg={6} xl={4}>
           <Select
-            placeholder="Odaberi tip plaćanja"
+            placeholder={t("modal.selectPaymentType")}
             allowClear
             style={{ width: "100%" }}
             value={filter?.paymentTypeId}
@@ -338,7 +340,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
       {showStatusSelect && (
         <Col xs={24} sm={12} md={8} lg={6} xl={4}>
           <Select
-            placeholder="Odaberi status"
+            placeholder={t("modal.selectStatus")}
             allowClear
             style={{ width: "100%" }}
             status="warning"
@@ -349,7 +351,15 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
           >
             {statuses?.map((x) => (
               <Select.Option key={x.statusId} value={x.statusId}>
-                {x.statusName}
+                {x.statusCode === "term_reserved"
+                  ? t("common.reservedTerm")
+                  : x.statusCode === "term_canceled"
+                  ? t("common.canceledTerm")
+                  : x.statusCode === "term_not_used"
+                  ? t("common.notUsedTerm")
+                  : x.statusCode === "term_used"
+                  ? t("common.usedTerm")
+                  : ""}
               </Select.Option>
             ))}
           </Select>
@@ -358,7 +368,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
       {showGroupReportData && (
         <Col xs={24} sm={12} md={8} lg={6} xl={4}>
           <Select
-            placeholder="Odaberi način grupisanja podataka"
+            placeholder={t("common.groupData")}
             style={{ width: "100%" }}
             value={filter?.groupDataType}
             status="warning"
@@ -368,7 +378,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
           >
             {groupDataReportType?.map((x) => (
               <Select.Option key={x.value} value={x.value}>
-                {x.name}
+                {x.name()}
               </Select.Option>
             ))}
           </Select>
@@ -378,7 +388,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
         <Col xs={24} sm={12} md={8} lg={6} xl={4}>
           <div style={{ display: "flex", alignItems: "center" }}>
             <InputNumber
-              placeholder="Cijena od"
+              placeholder={t("common.priceFrom")}
               status="warning"
               onChange={handleStartPriceChange}
               value={filter?.startPrice}
@@ -387,7 +397,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
             />
             <AiOutlineArrowRight style={{ margin: "0 12px" }} />
             <InputNumber
-              placeholder="Cijena do"
+              placeholder={t("common.priceTo")}
               status="warning"
               onChange={handleEndPriceChange}
               value={filter?.endPrice}
@@ -405,7 +415,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
       {showGiftCards && (
         <Col xs={24} sm={12} md={8} lg={6} xl={4}>
           <Select
-            placeholder="Odaberi poklon karticu"
+            placeholder={t("modal.selectGiftCard")}
             showSearch
             allowClear
             status="warning"
@@ -437,7 +447,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
       )}
       <Col xs={24} sm={12} md={8} lg={6} xl={4}>
         <FilterButton
-          buttonTitle="Reset filtera"
+          buttonTitle={t("button.resetFilter")}
           onButtonAction={onResetFilter}
         />
       </Col>

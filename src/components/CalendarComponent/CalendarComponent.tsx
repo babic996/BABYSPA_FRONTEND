@@ -10,17 +10,17 @@ import { convertOverviewReservationInterfaceToCreateOrUpdateReservationInterface
 import { calendarMessages } from "../../util/const";
 import { FaInfoCircle } from "react-icons/fa";
 import { useState } from "react";
-import { Modal, Typography } from "antd";
+import { Modal, Tag, Typography } from "antd";
 import "./CalendarComponent.scss";
 import useMediaQuery from "../../hooks/useMediaQuery";
+import { TFunction } from "i18next";
+import i18n from "../../i18n";
 const { Paragraph, Title } = Typography;
-dayjs.locale("bs");
-
-const localizer = dayjsLocalizer(dayjs);
 
 interface CalendarComponentProps {
   reservations?: OverviewReservationInterface[];
   onEventClick: (record: CreateOrUpdateReservationInterface) => void;
+  t: TFunction;
 }
 interface CalendarEvent {
   title: string;
@@ -33,11 +33,15 @@ interface CalendarEvent {
 const CalendarComponent: React.FC<CalendarComponentProps> = ({
   reservations,
   onEventClick,
+  t,
 }) => {
   const [openInfoModal, setIsOpenInfoModal] = useState<boolean>(false);
   const [reservationInfo, setReservationInfo] =
     useState<OverviewReservationInterface | null>();
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const currentLang = i18n.language;
+  dayjs.locale(currentLang === "en" ? "en" : "bs");
+  const localizer = dayjsLocalizer(dayjs);
 
   const events =
     reservations?.map((reservation) => ({
@@ -119,7 +123,9 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
   return (
     <>
       <Modal
-        title={<div style={{ textAlign: "center" }}>Informacije</div>}
+        title={
+          <div style={{ textAlign: "center" }}>{t("modal.information")}</div>
+        }
         maskClosable={false}
         open={openInfoModal}
         onCancel={handleCancelInfoModal}
@@ -135,7 +141,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
           }}
         >
           <Title level={5} style={{ color: "#333" }}>
-            ID aranžmana
+            {t("table.arrangementId")}
           </Title>
           <Paragraph
             style={{
@@ -146,7 +152,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
             {reservationInfo?.arrangement.arrangementId}
           </Paragraph>
           <Title level={5} style={{ color: "#333" }}>
-            Podaci o bebi
+            {t("table.babyDetails")}
           </Title>
           <Paragraph
             style={{
@@ -158,7 +164,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
           </Paragraph>
 
           <Title level={5} style={{ color: "#333" }}>
-            Paket usluge
+            {t("table.servicePackage")}
           </Title>
           <Paragraph
             style={{
@@ -170,19 +176,24 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
           </Paragraph>
 
           <Title level={5} style={{ color: "#333" }}>
-            Status
+            {t("table.status")}
           </Title>
-          <Paragraph
-            style={{
-              fontSize: "14px",
-              lineHeight: "0.5",
-            }}
-          >
-            {reservationInfo?.status.statusName}
+          <Paragraph style={{ fontSize: "14px", lineHeight: "0.5" }}>
+            {reservationInfo?.status.statusCode === "term_reserved" ? (
+              <Tag color="#16c9d3">{t("common.reservedTerm")}</Tag>
+            ) : reservationInfo?.status.statusCode === "term_canceled" ? (
+              <Tag color="#f40511">{t("common.canceledTerm")}</Tag>
+            ) : reservationInfo?.status.statusCode === "term_not_used" ? (
+              <Tag color="#ff660d">{t("common.notUsedTerm")}</Tag>
+            ) : reservationInfo?.status.statusCode === "term_used" ? (
+              <Tag color="#4caf50">{t("common.usedTerm")}</Tag>
+            ) : (
+              t("table.noDataCell")
+            )}
           </Paragraph>
 
           <Title level={5} style={{ color: "#333" }}>
-            Broj preostalih termina aranžmana
+            {t("table.remainingTerm")}
           </Title>
           <Paragraph
             style={{
@@ -203,7 +214,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
           views={["month", "week", "day"]}
           defaultView="month"
           onSelectEvent={handleEventClick}
-          messages={calendarMessages}
+          messages={currentLang === "en" ? undefined : calendarMessages}
           components={{
             event: eventRender,
           }}

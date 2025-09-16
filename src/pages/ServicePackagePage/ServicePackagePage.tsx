@@ -17,9 +17,11 @@ import useMediaQuery from "../../hooks/useMediaQuery";
 import useUpdateEffect from "../../hooks/useUpdateEffect";
 import ServicePackageModalContent from "../../components/ServicePackageModalContent/ServicePackageModalContent";
 import TableComponent from "./TableComponent";
+import { useTranslation } from "react-i18next";
 
 const ServicePackagePage = () => {
   const isModalOpen = useRef<boolean>(false);
+  const { t } = useTranslation();
   const [dataState, setDataState] = useState<DataStateServicePackage>({
     cursor: 1,
     servicePackages: [] as ServicePackageInterface[],
@@ -30,7 +32,7 @@ const ServicePackagePage = () => {
     useState<boolean>(false);
   const [existsByServicePackage, setExistsByServicePackage] =
     useState<boolean>(false);
-  const schema = getServicePackageValidationSchema(isEditServicePackage);
+  const schema = getServicePackageValidationSchema(isEditServicePackage, t);
   const { filter, showFilters, setShowFilters, onResetFilter } = useFilter();
   const [canFetch, setCanFetch] = useState<boolean>(false);
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -123,9 +125,13 @@ const ServicePackagePage = () => {
       <Modal
         title={
           isEditServicePackage ? (
-            <div style={{ textAlign: "center" }}>Uredi paket usluge</div>
+            <div style={{ textAlign: "center" }}>
+              {t("modal.editServicePackage")}
+            </div>
           ) : (
-            <div style={{ textAlign: "center" }}>Dodaj novi paket usluge</div>
+            <div style={{ textAlign: "center" }}>
+              {t("modal.createServicePackage")}
+            </div>
           )
         }
         maskClosable={false}
@@ -144,11 +150,12 @@ const ServicePackagePage = () => {
           isEditServicePackage={isEditServicePackage}
           isModalOpen={isModalOpen}
           setDataState={setDataState}
+          t={t}
         />
       </Modal>
       <div style={{ padding: "16px" }}>
         <HeaderButtonsComponent
-          buttonTitle="Dodaj paket usluge"
+          buttonTitle={t("button.addServicePackage")}
           onButtonAction={handleCreateModal}
           onFilterAction={() => setShowFilters((prev) => !prev)}
         />
@@ -163,6 +170,7 @@ const ServicePackagePage = () => {
           setDataState={setDataState}
           setExistsByServicePackage={setExistsByServicePackage}
           setIsEditServicePackage={setIsEditServicePackage}
+          t={t}
         />
       </div>
     </>

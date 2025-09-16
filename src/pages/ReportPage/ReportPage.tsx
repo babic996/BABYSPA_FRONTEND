@@ -24,6 +24,7 @@ import { groupDataReportType, handleApiError } from "../../util/const";
 import useMediaQuery from "../../hooks/useMediaQuery";
 import useUpdateEffect from "../../hooks/useUpdateEffect";
 import { toastErrorNotification } from "../../util/toastNotification";
+import { useTranslation } from "react-i18next";
 
 const ReportPage = () => {
   const [reservationDailyReport, setReservationDailyReport] = useState<
@@ -38,6 +39,7 @@ const ReportPage = () => {
   );
   const { filter, setFilter, onResetFilter } = useFilter();
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const { t } = useTranslation();
 
   //------------------LIFECYCLE------------------
 
@@ -112,7 +114,7 @@ const ReportPage = () => {
             key: "reservationReportTab",
             label: (
               <span style={{ fontSize: `${isMobile} 12px : 30px` }}>
-                Grafički izvještaj za rezervacije
+                {t("reportPage.reportForReservation")}
               </span>
             ),
             children: (
@@ -128,11 +130,11 @@ const ReportPage = () => {
                 {reservationDailyReport.length > 0 ? (
                   <>
                     <div style={{ margin: "20px 0", textAlign: "center" }}>
-                      <h3>Ukupno rezervacija: {sumOnXAxesReservations}</h3>
-                      <p>
-                        Ova cifra predstavlja ukupan broj rezervacija za
-                        izabrani vremenski period.
-                      </p>
+                      <h3>
+                        {t("reportPage.totalReservation")}:
+                        {sumOnXAxesReservations}
+                      </h3>
+                      <p>{t("reportPage.titleSumReservation")}</p>
                     </div>
                     <ResponsiveContainer height={300}>
                       <BarChart data={reservationDailyReport}>
@@ -147,7 +149,7 @@ const ReportPage = () => {
                 ) : (
                   <div className="no-data-message">
                     <p className="message-color">
-                      Nema podataka za odabrani filter
+                      {t("common.noDataForFilter")}
                     </p>
                   </div>
                 )}
@@ -158,7 +160,7 @@ const ReportPage = () => {
             key: "servicePackageReportTab",
             label: (
               <span style={{ fontSize: `${isMobile} 12px : 30px` }}>
-                Grafički izvještaj za pakete usluga
+                {t("reportPage.reportForServicePackage")}
               </span>
             ),
             children: (
@@ -173,12 +175,10 @@ const ReportPage = () => {
                   <>
                     <div style={{ margin: "20px 0", textAlign: "center" }}>
                       <h3>
-                        Ukupno korištenih paketa: {sumOnXAxesServicePackages}
+                        {t("reportPage.totalServicePackage")}:
+                        {sumOnXAxesServicePackages}
                       </h3>
-                      <p>
-                        Ova cifra predstavlja ukupan broj iskorištenih paketa
-                        usluga za izabrani vremenski period.
-                      </p>
+                      <p>{t("reportPage.titleSumServicePackage")}</p>
                     </div>
                     <ResponsiveContainer height={300}>
                       <BarChart data={servicePackageDailyReport}>
@@ -195,7 +195,7 @@ const ReportPage = () => {
                 ) : (
                   <div className="no-data-message">
                     <p className="message-color">
-                      Nema podataka za odabrani filter
+                      {t("common.noDataForFilter")}
                     </p>
                   </div>
                 )}

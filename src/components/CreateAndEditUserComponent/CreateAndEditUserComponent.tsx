@@ -14,6 +14,7 @@ import {
 import { convertRegisterOrUpdateUserToRegister } from "../../mappers/UserMapper";
 import { handleApiError } from "../../util/const";
 import { Button, Form, Input } from "antd";
+import { useTranslation } from "react-i18next";
 
 interface CreateAndEditUserComponentProps {
   isEditUser: boolean;
@@ -32,17 +33,18 @@ const CreateAndEditUserComponent: React.FC<CreateAndEditUserComponentProps> = ({
   errors,
   handleLogout,
 }) => {
+  const { t } = useTranslation();
   const onSubmit: SubmitHandler<RegisterOrUpdateUserInterface> = async (
     data
   ) => {
     try {
       if (isEditUser) {
         await editUser(data);
-        toastSuccessNotification("Ažurirano!");
+        toastSuccessNotification(t("common.succesfullyEdited"));
         handleLogout();
       } else {
         await registerUser(convertRegisterOrUpdateUserToRegister(data));
-        toastSuccessNotification("Sačuvano!");
+        toastSuccessNotification(t("common.succesfullyAdded"));
       }
       setIsUserModalOpen(false);
     } catch (e) {
@@ -52,7 +54,7 @@ const CreateAndEditUserComponent: React.FC<CreateAndEditUserComponentProps> = ({
   return (
     <Form onFinish={handleSubmit(onSubmit)} layout="vertical">
       <Form.Item
-        label="Ime"
+        label={t("modal.firstName")}
         validateStatus={errors.firstName ? "error" : ""}
         help={errors.firstName?.message}
         style={{ marginBottom: 8 }}
@@ -65,7 +67,7 @@ const CreateAndEditUserComponent: React.FC<CreateAndEditUserComponentProps> = ({
       </Form.Item>
 
       <Form.Item
-        label="Prezime"
+        label={t("modal.lastName")}
         validateStatus={errors.lastName ? "error" : ""}
         help={errors.lastName?.message}
         style={{ marginBottom: 8 }}
@@ -78,7 +80,7 @@ const CreateAndEditUserComponent: React.FC<CreateAndEditUserComponentProps> = ({
       </Form.Item>
 
       <Form.Item
-        label="Email"
+        label={t("modal.email")}
         validateStatus={errors.email ? "error" : ""}
         help={errors.email?.message}
         style={{ marginBottom: 8 }}
@@ -91,7 +93,7 @@ const CreateAndEditUserComponent: React.FC<CreateAndEditUserComponentProps> = ({
       </Form.Item>
 
       <Form.Item
-        label="Username"
+        label={t("modal.username")}
         validateStatus={errors.username ? "error" : ""}
         help={errors.username?.message}
         style={{ marginBottom: 8 }}
@@ -106,7 +108,7 @@ const CreateAndEditUserComponent: React.FC<CreateAndEditUserComponentProps> = ({
       {isEditUser && (
         <>
           <Form.Item
-            label="Stari password"
+            label={t("modal.oldPassword")}
             validateStatus={errors.oldPassword ? "error" : ""}
             help={errors.oldPassword?.message}
             style={{ marginBottom: 8 }}
@@ -120,7 +122,7 @@ const CreateAndEditUserComponent: React.FC<CreateAndEditUserComponentProps> = ({
             />
           </Form.Item>
           <Form.Item
-            label="Novi password"
+            label={t("modal.newPassword")}
             validateStatus={errors.newPassword ? "error" : ""}
             help={errors.newPassword?.message}
             style={{ marginBottom: 8 }}
@@ -139,7 +141,7 @@ const CreateAndEditUserComponent: React.FC<CreateAndEditUserComponentProps> = ({
       {!isEditUser && (
         <>
           <Form.Item
-            label="Password"
+            label={t("modal.password")}
             validateStatus={errors.password ? "error" : ""}
             help={errors.password?.message}
             style={{ marginBottom: 8 }}
@@ -153,7 +155,7 @@ const CreateAndEditUserComponent: React.FC<CreateAndEditUserComponentProps> = ({
             />
           </Form.Item>
           <Form.Item
-            label="Ponovi password"
+            label={t("modal.repeatPassword")}
             validateStatus={errors.repeatPassword ? "error" : ""}
             help={errors.repeatPassword?.message}
             style={{ marginBottom: 8 }}
@@ -174,7 +176,7 @@ const CreateAndEditUserComponent: React.FC<CreateAndEditUserComponentProps> = ({
         wrapperCol={{ span: 24 }}
       >
         <Button type="primary" htmlType="submit">
-          Sačuvaj
+          {t("button.save")}
         </Button>
       </Form.Item>
     </Form>

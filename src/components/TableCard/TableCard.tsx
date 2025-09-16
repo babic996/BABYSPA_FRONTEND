@@ -6,6 +6,7 @@ import {
   ContactsOutlined,
 } from "@ant-design/icons";
 import "./TableCard.scss";
+import { useTranslation } from "react-i18next";
 
 interface ColumnData {
   title: string;
@@ -31,6 +32,7 @@ const TableCard: React.FC<TableCardProps> = ({
   deleteTitle,
   loading,
 }) => {
+  const { t } = useTranslation();
   const actions: React.ReactNode[] = [
     handleEdit && (
       <EditOutlined key="edit" onClick={handleEdit} style={{ color: "#fff" }} />
@@ -39,11 +41,11 @@ const TableCard: React.FC<TableCardProps> = ({
       <Popconfirm
         title={deleteTitle}
         onConfirm={handleDelete}
-        okText="Da"
-        cancelText="Ne"
+        okText={t("button.confirm")}
+        cancelText={t("button.cancel")}
         key="delete"
       >
-        <DeleteOutlined style={{ color: "#fff" }} title="Izbriši" />
+        <DeleteOutlined style={{ color: "#fff" }} title={t("button.delete")} />
       </Popconfirm>
     ),
     handleReservationPreview && (

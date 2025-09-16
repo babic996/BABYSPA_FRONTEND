@@ -43,16 +43,19 @@ import dayjs from "dayjs";
 import FullPageSpiner from "../../components/FullPageSpiner/FullPageSpiner";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { getReservationSchema } from "../../validations/ReservationValidationSchema";
-import { handleApiError, monthNames } from "../../util/const";
+import { handleApiError } from "../../util/const";
 import AddButton from "../../components/ButtonComponents/AddButton";
 import useMediaQuery from "../../hooks/useMediaQuery";
 import useUpdateEffect from "../../hooks/useUpdateEffect";
 import TableComponent from "./TableComponent";
 import { useFilter } from "../../context/Filter/useFilter";
 import { FaInfoCircle } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
+import i18n from "../../i18n";
 
 const HomePage = () => {
   const isModalOpen = useRef<boolean>(false);
+  const { t } = useTranslation();
   const [isEditReservation, setIsEditReservation] = useState<boolean>(false);
   const [status, setStatus] = useState<StatusInterface[]>([]);
   const [reservations, setReservations] = useState<
@@ -66,12 +69,13 @@ const HomePage = () => {
   });
   const [arrangements, setArrangements] = useState<ShortDetailsInterface[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const reservationSchema = getReservationSchema(isEditReservation);
+  const reservationSchema = getReservationSchema(isEditReservation, t);
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [canFetch, setCanFetch] = useState<boolean>(false);
   const [visible, setVisible] = useState<boolean>(false);
   const [isTableView, setIsTableView] = useState<boolean>(false);
   const { filter, onResetFilter } = useFilter();
+  const months = i18n.t("common.months", { returnObjects: true }) as string[];
 
   const {
     control,
@@ -263,7 +267,7 @@ const HomePage = () => {
         isModalOpen.current = false;
         const arrangements = await getArrangementsList();
         setArrangements(arrangements);
-        toastSuccessNotification("Ažurirano!");
+        toastSuccessNotification(t("common.succesfullyEdited"));
         onResetFilter();
       } catch (e) {
         toastErrorNotification(handleApiError(e));
@@ -292,7 +296,7 @@ const HomePage = () => {
         setArrangements(arrangements);
 
         isModalOpen.current = false;
-        toastSuccessNotification("Sačuvano!");
+        toastSuccessNotification(t("common.succesfullyAdded"));
         onResetFilter();
       } catch (e) {
         toastErrorNotification(handleApiError(e));
@@ -309,7 +313,9 @@ const HomePage = () => {
       <Modal
         title={
           <div style={{ textAlign: "center" }}>
-            {isEditReservation ? "Uredi rezervaciju" : "Dodaj novi rezervaciju"}
+            {isEditReservation
+              ? t("modal.editReservation")
+              : t("modal.createReservation")}
           </div>
         }
         maskClosable={false}
@@ -322,7 +328,7 @@ const HomePage = () => {
         <Form onFinish={handleSubmit(onSubmit)} layout="vertical">
           {!isEditReservation && (
             <Form.Item
-              label="Odaberi aranžman"
+              label={t("modal.selectArrangement")}
               validateStatus={errors.arrangementId ? "error" : ""}
               help={errors.arrangementId?.message}
               style={{ marginBottom: 8 }}
@@ -333,7 +339,7 @@ const HomePage = () => {
                 render={({ field }) => (
                   <Select
                     {...field}
-                    placeholder="Odaberi aranžman"
+                    placeholder={t("modal.selectArrangement")}
                     showSearch
                     optionFilterProp="children"
                     filterOption={(input, option) =>
@@ -355,7 +361,7 @@ const HomePage = () => {
           {!isEditReservation &&
             (isMobile ? (
               <Form.Item
-                label="Datum i vrijeme termina"
+                label={t("modal.reservationDateTime")}
                 validateStatus={errors.startDate ? "error" : ""}
                 help={errors.startDate?.message}
                 style={{ marginBottom: 8 }}
@@ -371,7 +377,7 @@ const HomePage = () => {
                       >
                         {value
                           ? dayjs(value).format("DD.MM.YYYY HH:mm")
-                          : "Odaberite datum i vrijeme"}
+                          : t("common.chooseDateAndTime")}
                       </Button>
                       <DatePickerMobile
                         visible={visible}
@@ -387,7 +393,7 @@ const HomePage = () => {
                         precision="minute"
                         renderLabel={(type, data) => {
                           if (type === "month") {
-                            return monthNames[data - 1];
+                            return months[data - 1];
                           }
                           return data;
                         }}
@@ -398,7 +404,7 @@ const HomePage = () => {
               </Form.Item>
             ) : (
               <Form.Item
-                label="Datum i vrijeme termina"
+                label={t("modal.reservationDateTime")}
                 validateStatus={errors.startDate ? "error" : ""}
                 help={errors.startDate?.message}
                 style={{ marginBottom: 8 }}
@@ -424,7 +430,7 @@ const HomePage = () => {
             ))}
           {!isEditReservation && (
             <Form.Item
-              label="Trajanje termina u minutama"
+              label={t("modal.reservationDuration")}
               validateStatus={errors.durationReservation ? "error" : ""}
               help={errors.durationReservation?.message}
               style={{ marginBottom: 8 }}
@@ -441,7 +447,7 @@ const HomePage = () => {
 
           {isEditReservation && (
             <Form.Item
-              label="Odaberi status"
+              label={t("modal.selectStatus")}
               validateStatus={errors.statusId ? "error" : ""}
               help={errors.statusId?.message}
               style={{ marginBottom: 8 }}
@@ -450,7 +456,7 @@ const HomePage = () => {
                 name="statusId"
                 control={control}
                 render={({ field }) => (
-                  <Select {...field} placeholder="Odaberi status">
+                  <Select {...field} placeholder={t("modal.selectStatus")}>
                     {status?.map((x) => (
                       <Select.Option
                         key={x.statusId}
@@ -462,7 +468,15 @@ const HomePage = () => {
                             : {}
                         }
                       >
-                        {x.statusName}
+                        {x.statusCode === "term_reserved"
+                          ? t("common.reservedTerm")
+                          : x.statusCode === "term_canceled"
+                          ? t("common.canceledTerm")
+                          : x.statusCode === "term_not_used"
+                          ? t("common.notUsedTerm")
+                          : x.statusCode === "term_used"
+                          ? t("common.usedTerm")
+                          : ""}
                       </Select.Option>
                     ))}
                   </Select>
@@ -471,7 +485,7 @@ const HomePage = () => {
             </Form.Item>
           )}
           <Form.Item
-            label="Bilješka"
+            label={t("modal.note")}
             validateStatus={errors.note ? "error" : ""}
             help={errors.note?.message}
             style={{ marginBottom: 8 }}
@@ -502,19 +516,19 @@ const HomePage = () => {
           >
             <Button.Group>
               <Button type="primary" htmlType="submit">
-                Sačuvaj
+                {t("button.save")}
               </Button>
               {isEditReservation && (
                 <>
                   <Popconfirm
-                    title="Brisanje rezervacije"
-                    description="Da li želite da izbrišete rezervaciju?"
-                    okText="Da"
-                    cancelText="Ne"
+                    title={t("modal.deleteConfirmReservationTitle")}
+                    description={t("modal.deleteConfirmReservation")}
+                    okText={t("button.confirm")}
+                    cancelText={t("button.cancel")}
                     onConfirm={() => handleDelete(getValues("reservationId"))}
                   >
                     <Button type="default" danger>
-                      Obriši
+                      {t("button.delete")}
                     </Button>
                   </Popconfirm>
                 </>
@@ -527,81 +541,62 @@ const HomePage = () => {
         {loading && <FullPageSpiner />}
         {!loading && (
           <>
-            {isMobile ? (
-              <>
-                <Row
-                  align="middle"
-                  justify="space-between"
-                  style={{ marginBottom: 10 }}
+            <Row
+              align="middle"
+              justify="space-between"
+              style={{ marginBottom: 10 }}
+            >
+              <Col>
+                <AddButton
+                  buttonTitle={t("button.addReservation")}
+                  onButtonAction={handleCreateModal}
+                />
+              </Col>
+
+              {!isTableView && (
+                <Col
+                  flex={isMobile ? undefined : "auto"}
+                  style={isMobile ? {} : { textAlign: "center" }}
                 >
-                  <Col>
-                    <AddButton
-                      buttonTitle="Dodaj rezervaciju"
-                      onButtonAction={handleCreateModal}
-                    />
-                  </Col>
-
-                  <Col>
-                    {!isTableView && (
-                      <Popover
-                        content={
-                          <Space direction="vertical">
-                            <Tag color="#16c9d3">Rezervisan termin</Tag>
-                            <Tag color="#f40511">Otkazan termin</Tag>
-                            <Tag color="#4caf50">Iskorišten termin</Tag>
-                            <Tag color="#ff660d">Termin nije iskorišten</Tag>
-                          </Space>
-                        }
-                      >
-                        <Button type="text" icon={<FaInfoCircle size={18} />} />
-                      </Popover>
-                    )}
-                  </Col>
-
-                  <Col>
-                    <Button
-                      type="primary"
-                      onClick={() => setIsTableView((prev) => !prev)}
+                  {isMobile ? (
+                    <Popover
+                      content={
+                        <Space direction="vertical">
+                          <Tag color="#16c9d3">{t("common.reservedTerm")}</Tag>
+                          <Tag color="#f40511">{t("common.canceledTerm")}</Tag>
+                          <Tag color="#4caf50">{t("common.usedTerm")}</Tag>
+                          <Tag color="#ff660d">{t("common.notUsedTerm")}</Tag>
+                        </Space>
+                      }
                     >
-                      {!isTableView
-                        ? "Tabelarni prikaz"
-                        : "Prikaz na kalendaru"}
-                    </Button>
-                  </Col>
-                </Row>
-              </>
-            ) : (
-              <Row
-                align="middle"
-                justify="space-between"
-                style={{ marginBottom: 10 }}
-              >
-                <Col>
-                  <AddButton
-                    buttonTitle="Dodaj rezervaciju"
-                    onButtonAction={handleCreateModal}
-                  />
-                </Col>
-                {!isTableView && (
-                  <Col flex="auto" style={{ textAlign: "center" }}>
+                      <Button type="text" icon={<FaInfoCircle size={18} />} />
+                    </Popover>
+                  ) : (
                     <Space size={[8, 8]} wrap={false}>
-                      <Tag color="#16c9d3">Rezervisan termin</Tag>
-                      <Tag color="#f40511">Otkazan termin</Tag>
-                      <Tag color="#4caf50">Iskorišten termin</Tag>
-                      <Tag color="#ff660d">Termin nije iskorišten</Tag>
+                      <Tag color="#16c9d3">{t("common.reservedTerm")}</Tag>
+                      <Tag color="#f40511">{t("common.canceledTerm")}</Tag>
+                      <Tag color="#4caf50">{t("common.usedTerm")}</Tag>
+                      <Tag color="#ff660d">{t("common.notUsedTerm")}</Tag>
                     </Space>
-                  </Col>
-                )}
-                <Col>
-                  <Button
-                    type="primary"
-                    onClick={() => setIsTableView((prev) => !prev)}
-                  >
-                    {!isTableView ? "Tabelarni prikaz" : "Prikaz na kalendaru"}
-                  </Button>
+                  )}
                 </Col>
-              </Row>
-            )}
+              )}
+
+              <Col>
+                <Button
+                  type="primary"
+                  onClick={() => setIsTableView((prev) => !prev)}
+                >
+                  {!isTableView
+                    ? isMobile
+                      ? t("button.table")
+                      : t("button.tableLong")
+                    : isMobile
+                    ? t("button.calendar")
+                    : t("button.calendarLong")}
+                </Button>
+              </Col>
+            </Row>
 
             <div className="calendar-wrapper">
               {isTableView && (
@@ -611,12 +606,14 @@ const HomePage = () => {
                   handleEdit={handleEdit}
                   dataState={dataState}
                   nextPage={nextPage}
+                  t={t}
                 />
               )}
               {!isTableView && (
                 <CalendarComponent
                   reservations={reservations}
                   onEventClick={handleEdit}
+                  t={t}
                 />
               )}
             </div>

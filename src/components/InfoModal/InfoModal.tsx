@@ -1,6 +1,7 @@
 import { Modal } from "antd";
 import React from "react";
 import useMediaQuery from "../../hooks/useMediaQuery";
+import { useTranslation } from "react-i18next";
 
 interface InfoModalProps {
   visible: boolean;
@@ -14,6 +15,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
   fullText,
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const { t } = useTranslation();
 
   //------------------METOHDS------------------
   const formattedText = fullText.split("\n").map((line, index) => (
@@ -25,7 +27,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
 
   return (
     <Modal
-      title={<div style={{ textAlign: "center" }}>Bilješka</div>}
+      title={<div style={{ textAlign: "center" }}>{t("modal.note")}</div>}
       open={visible}
       onCancel={onClose}
       footer={null}

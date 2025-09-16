@@ -1,29 +1,31 @@
 import * as yup from "yup";
+import { TFunction } from "i18next";
 
-export const getBabyValidationSchema = (isUpdate: boolean) => {
+export const getBabyValidationSchema = (isUpdate: boolean, t: TFunction) => {
   return yup.object().shape({
     babyId: yup
       .number()
       .nullable()
       .when([], {
         is: () => isUpdate,
-        then: (schema) => schema.required("ID bebe je obavezan"),
+        then: (schema) =>
+          schema.required(t("babyModalValidation.babyIdRequired")),
         otherwise: (schema) => schema.nullable(),
       }),
-    babyName: yup.string().required("Morate unijeti ime bebe").trim(),
+    babyName: yup
+      .string()
+      .required(t("babyModalValidation.babyNameRequired"))
+      .trim(),
     babySurname: yup.string().nullable().optional(),
     birthDate: yup.string().nullable().optional(),
     numberOfMonths: yup
       .number()
-      .min(1, "Broj mjeseci mora biti veći od 0")
-      .required("Morate unijeti broj mjeseci"),
+      .min(1, t("babyModalValidation.numberOfMonthsMin"))
+      .required(t("babyModalValidation.numberOfMonthsRequired")),
     phoneNumber: yup
       .string()
-      .matches(
-        /^\+\d{10,}$/,
-        "Broj mora početi sa '+' i sadržavati najmanje 10 cifara, bez razmaka"
-      )
-      .required("Morate unijeti kontakt telefon"),
+      .matches(/^\+\d{10,}$/, t("babyModalValidation.phoneNumberInvalid"))
+      .required(t("babyModalValidation.phoneNumberRequired")),
     motherName: yup.string().nullable().optional(),
     note: yup.string().nullable().optional(),
   });

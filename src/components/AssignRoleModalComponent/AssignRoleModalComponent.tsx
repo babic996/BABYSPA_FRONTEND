@@ -7,6 +7,7 @@ import {
 import { RoleInterface } from "../../interfaces/RoleInterface";
 import { toastErrorNotification } from "../../util/toastNotification";
 import { assignRolesToUser } from "../../services/UserService";
+import { useTranslation } from "react-i18next";
 
 interface AssignRoleModalProps {
   selectedUser: UserInfoInterface | null;
@@ -29,6 +30,7 @@ const AssignRoleModalComponent: React.FC<AssignRoleModalProps> = ({
   setSelectedUser,
   users,
 }) => {
+  const { t } = useTranslation();
   const handleUserChange = (value: number) => {
     const selected = users.find((user) => user.userId === value) ?? null;
     setSelectedUser(selected);
@@ -58,7 +60,7 @@ const AssignRoleModalComponent: React.FC<AssignRoleModalProps> = ({
       style={{ display: "flex", padding: "20px" }}
     >
       <Select
-        placeholder="Odaberi korisnika"
+        placeholder={t("modal.selectUser")}
         style={{ width: "100%" }}
         value={selectedUser?.userId}
         onChange={handleUserChange}
@@ -69,7 +71,7 @@ const AssignRoleModalComponent: React.FC<AssignRoleModalProps> = ({
         }))}
       />
       {selectedUser && (
-        <Card size="small" title="Dodijeli uloge">
+        <Card size="small" title={t("modal.assign_roles")}>
           <Checkbox.Group
             value={selectedRoles}
             onChange={setSelectedRoles}
@@ -103,7 +105,7 @@ const AssignRoleModalComponent: React.FC<AssignRoleModalProps> = ({
 
       <Flex justify="center" gap="small">
         <Button type="primary" onClick={handleAssignRoles}>
-          Sačuvaj
+          {t("button.save")}
         </Button>
       </Flex>
     </Space>

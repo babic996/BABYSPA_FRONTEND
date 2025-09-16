@@ -33,6 +33,7 @@ import ReservationInfoModal from "../../components/ReservationInfoModal/Reservat
 import { ReservationShortDetailsInterface } from "../../interfaces/ReservationShortDetailsInterface";
 import { ColumnsType } from "antd/es/table";
 import { useFilter } from "../../context/Filter/useFilter";
+import { TFunction } from "i18next";
 
 interface TableComponentProps {
   setIsEditArrangement: React.Dispatch<React.SetStateAction<boolean>>;
@@ -44,6 +45,7 @@ interface TableComponentProps {
   dropdownData: DropDownDataInterface;
   setHidePaymentType: React.Dispatch<React.SetStateAction<boolean>>;
   setDisableEditField: React.Dispatch<React.SetStateAction<boolean>>;
+  t: TFunction;
 }
 
 const TableComponent: React.FC<TableComponentProps> = ({
@@ -56,6 +58,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
   dropdownData,
   setHidePaymentType,
   setDisableEditField,
+  t,
 }) => {
   const isReservationInfoModalVisible = useRef<boolean>(false);
   const isInfoModalVisible = useRef<boolean>(false);
@@ -118,7 +121,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
           totalElements: result.data.totalElements,
           totalSum: prev.totalSum - price,
         }));
-        toastSuccessNotification("Obrisano!");
+        toastSuccessNotification(t("common.succesfullyDeleted"));
         onResetFilter();
       } catch (e) {
         toastErrorNotification(handleApiError(e));
@@ -164,49 +167,49 @@ const TableComponent: React.FC<TableComponentProps> = ({
 
   const columns: ColumnsType<TableArrangementInterface> = [
     {
-      title: "ID aranžmana",
+      title: t("table.arrangementId"),
       dataIndex: "arrangementId",
       key: "arrangementId",
     },
     {
-      title: "Naziv paketa usluge",
+      title: t("table.servicePackage"),
       dataIndex: "servicePackage",
       key: "servicePackage",
       render: (item) => {
-        return item ? item.value : "Nema podatka";
+        return item ? item.value : t("table.noDataCell");
       },
     },
     {
-      title: "Podaci o bebi",
+      title: t("table.babyDetails"),
       dataIndex: "babyDetails",
       key: "babyDetails",
       render: (item) => {
-        return item ? item.value : "Nema podatka";
+        return item ? item.value : t("table.noDataCell");
       },
     },
     {
-      title: "Broj preostalih termina",
+      title: t("table.remainingTerm"),
       dataIndex: "remainingTerm",
       key: "remainingTerm",
     },
     {
-      title: "Cijena u KM",
+      title: t("table.price"),
       dataIndex: "price",
       key: "price",
       render: (item) => {
-        return item ? item.toFixed(2) : "Nema podatka";
+        return item ? item.toFixed(2) : t("table.noDataCell");
       },
     },
     {
-      title: "Ostvareni popust",
+      title: t("table.discount"),
       dataIndex: "discount",
       key: "discount",
       render: (item) => {
-        return item ? item.value : "Nije ostvaren popust";
+        return item ? item.value : t("table.noDiscount");
       },
     },
     {
-      title: "Tip plaćanja",
+      title: t("table.paymentType"),
       dataIndex: "paymentType",
       key: "paymentType",
       render: (item, record) => {
@@ -216,17 +219,20 @@ const TableComponent: React.FC<TableComponentProps> = ({
 
         if (match?.paymentTypeCode === "gift") {
           return (
-            <Popover content={record?.giftCard?.value} title="Serijski broj">
+            <Popover
+              content={record?.giftCard?.value}
+              title={t("table.giftCard")}
+            >
               <span>{item.value}</span>
             </Popover>
           );
         }
 
-        return item ? item.value : "Nije plaćeno";
+        return item ? item.value : t("common.notPaid");
       },
     },
     {
-      title: "Bilješka",
+      title: t("table.note"),
       dataIndex: "note",
       key: "note",
       render: (value) => {
@@ -244,43 +250,43 @@ const TableComponent: React.FC<TableComponentProps> = ({
       },
     },
     {
-      title: "Datum kreiranja",
+      title: t("table.createdAt"),
       dataIndex: "createdAt",
       key: "createdAt",
       render: (value) => {
         return value
-          ? dayjs(value).format("DD.MM.YYYY.") + " godine"
-          : "Nema podatka";
+          ? dayjs(value).format("DD.MM.YYYY.") + " " + t("common.years")
+          : t("table.noDataCell");
       },
     },
     {
-      title: "Status",
+      title: t("table.status"),
       dataIndex: "status",
       key: "status",
       render: (item) => {
         return item ? (
-          item.value === "Plaćen" ? (
-            <Tag color="success">{item.value}</Tag>
-          ) : item.value === "Nije plaćen" ? (
-            <Tag color="error">{item.value}</Tag>
-          ) : item.value === "Kreiran" ? (
-            <Tag color="warning">{item.value}</Tag>
+          item.value === "paid" ? (
+            <Tag color="success">{t("common.paid")}</Tag>
+          ) : item.value === "not_paid" ? (
+            <Tag color="error">{t("common.notPaid")}</Tag>
+          ) : item.value === "created" ? (
+            <Tag color="warning">{t("common.created")}</Tag>
           ) : (
-            "Nema podatka"
+            t("table.noDataCell")
           )
         ) : (
-          "Nema podatka"
+          t("table.noDataCell")
         );
       },
     },
     {
-      title: "Akcije",
+      title: t("table.actions"),
       key: "actions",
       render: (_, record) => (
         <>
           <EditOutlined
             style={{ marginRight: 12 }}
-            title="Uredi"
+            title={t("button.edit")}
             onClick={() => {
               const arrangementDto: CreateOrUpdateArrangementInterface =
                 convertTableArrangementToCreateOrUpdateArrangement(record);
@@ -288,24 +294,25 @@ const TableComponent: React.FC<TableComponentProps> = ({
             }}
           />
           <Popconfirm
-            title="Da li ste sigurni da želite izbrisati ovaj aranžman?"
+            title={t("table.deleteConfirmArrangement")}
             onConfirm={() => handleDelete(record.arrangementId)}
-            okText="Da"
-            cancelText="Ne"
+            okText={t("button.confirm")}
+            cancelText={t("button.cancel")}
           >
             <DeleteOutlined
               style={{ color: "red", marginRight: 12 }}
-              title="Izbriši"
+              title={t("button.delete")}
             />
           </Popconfirm>
           <ContactsOutlined
             onClick={() => handleGetReservation(record?.arrangementId)}
-            title="Rezervacije"
+            title={t("table.reservations")}
           />
         </>
       ),
     },
   ];
+
   return (
     <>
       <InfoModal
@@ -317,6 +324,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
         visible={isReservationInfoModalVisible.current}
         onClose={handleCloseReservationInfoModal}
         reservations={reservationShortDetails}
+        t={t}
       />
       {dataState.totalSum > 0 && (
         <div className="price-sum">
@@ -327,7 +335,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
               color: "#FFF",
             }}
           >
-            Suma cijena: {dataState.totalSum}KM
+            {t("table.priceSum")}: {dataState.totalSum}KM
           </Typography.Text>
         </div>
       )}
@@ -346,33 +354,35 @@ const TableComponent: React.FC<TableComponentProps> = ({
               handleReservationPreview={() =>
                 handleGetReservation(x?.arrangementId)
               }
-              deleteTitle="Da li ste sigurni da želite izbrisati ovaj paket usluge?"
+              deleteTitle={t("table.deleteConfirmArrangement")}
               columns={[
-                { title: "ID aranžmana", value: x.arrangementId },
+                { title: t("table.arrangementId"), value: x.arrangementId },
                 {
-                  title: "Naziv paketa usluge",
+                  title: t("table.servicePackage"),
                   value: x.servicePackage
                     ? x.servicePackage.value
-                    : "Nema podataka",
+                    : t("table.noDataCell"),
                 },
                 {
-                  title: "Podaci o bebi",
-                  value: x.babyDetails ? x.babyDetails.value : "Nema podataka",
+                  title: t("table.babyDetails"),
+                  value: x.babyDetails
+                    ? x.babyDetails.value
+                    : t("table.noDataCell"),
                 },
                 {
-                  title: "Broj preostalih termina",
-                  value: x.remainingTerm ? x.remainingTerm : "Nema podataka",
+                  title: t("table.remainingTerm"),
+                  value: x.remainingTerm ?? t("table.noDataCell"),
                 },
                 {
-                  title: "Cijena u KM",
-                  value: x.price ? x.price.toFixed(2) : "Nema podataka",
+                  title: t("table.price"),
+                  value: x.price ? x.price.toFixed(2) : t("table.noDataCell"),
                 },
                 {
-                  title: "Ostvareni popust",
-                  value: x.discount ? x.discount.value : "Nije ostvaren popust",
+                  title: t("table.discount"),
+                  value: x.discount ? x.discount.value : t("table.noDiscount"),
                 },
                 {
-                  title: "Tip plaćanja",
+                  title: t("table.paymentType"),
                   value: (() => {
                     const selectedPayment = dropdownData.paymentTypes.find(
                       (p) => p.paymentTypeId === x.paymentType?.id
@@ -380,35 +390,39 @@ const TableComponent: React.FC<TableComponentProps> = ({
                     if (selectedPayment?.paymentTypeCode === "gift") {
                       return `${x.paymentType.value} (${x.giftCard?.value})`;
                     }
-                    return x.paymentType ? x.paymentType.value : "Nije plaćeno";
+                    return x.paymentType
+                      ? x.paymentType.value
+                      : t("table.notPaid");
                   })(),
                 },
                 {
-                  title: "Datum kreiranja",
+                  title: t("table.createdAt"),
                   value: x.createdAt
-                    ? dayjs(x.createdAt).format("DD.MM.YYYY.") + " godine"
-                    : "Nema podatka",
+                    ? dayjs(x.createdAt).format("DD.MM.YYYY.") +
+                      " " +
+                      t("common.years")
+                    : t("table.noDataCell"),
                 },
                 {
-                  title: "Bilješka",
-                  value: x.note ? x.note : "Nema podataka",
+                  title: t("table.note"),
+                  value: x.note ? x.note : t("table.noDataCell"),
                   isPreviewable: x.note && x.note?.length > 3 ? true : false,
                   onNoteClick: () => handleOpenInfoModal(x.note),
                 },
                 {
-                  title: "Status",
+                  title: t("table.status"),
                   value: x.status ? (
-                    x.status.value === "Plaćen" ? (
-                      <Tag color="success">{x.status.value}</Tag>
-                    ) : x.status.value === "Nije plaćen" ? (
-                      <Tag color="error">{x.status.value}</Tag>
-                    ) : x.status.value === "Kreiran" ? (
-                      <Tag color="warning">{x.status.value}</Tag>
+                    x.status.value === "paid" ? (
+                      <Tag color="success">{t("common.paid")}</Tag>
+                    ) : x.status.value === "not_paid" ? (
+                      <Tag color="error">{t("common.notPaid")}</Tag>
+                    ) : x.status.value === "created" ? (
+                      <Tag color="warning">{t("common.created")}</Tag>
                     ) : (
-                      "Nema podatka"
+                      t("table.noDataCell")
                     )
                   ) : (
-                    "Nema podatka"
+                    t("table.noDataCell")
                   ),
                 },
               ]}
@@ -420,7 +434,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
             total={dataState.totalElements}
             onChange={nextPage}
             showSizeChanger={false}
-            locale={{ items_per_page: "po stranici" }}
+            locale={{ items_per_page: t("table.perPage") }}
             style={{ justifyContent: "center" }}
           />
         </>
@@ -432,7 +446,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
           dataSource={dataState.arrangements}
           rowKey="arrangementId"
           locale={{
-            emptyText: "Nema podataka za prikazati",
+            emptyText: t("table.emptyTable"),
           }}
           pagination={{
             current: dataState.cursor,

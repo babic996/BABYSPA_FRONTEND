@@ -35,9 +35,11 @@ import { GiftCardInterface } from "../../interfaces/GiftCardInterface";
 import ArrangementModalContent from "../../components/ArrangementModalContent/ArrangementModalContent";
 import TableComponent from "./TableComponent";
 import { handleApiError } from "../../util/const";
+import { useTranslation } from "react-i18next";
 
 const ArrangementPage = () => {
   const isModalOpen = useRef<boolean>(false);
+  const { t } = useTranslation();
   const [dataState, setDataState] = useState<DataStateArrangement>({
     cursor: 1,
     arrangements: [] as TableArrangementInterface[],
@@ -58,7 +60,8 @@ const ArrangementPage = () => {
   const [disableEditField, setDisableEditField] = useState<boolean>(false);
   const schema = getArrangementValidationSchema(
     isEditArrangement,
-    dropdownData.paymentTypes
+    dropdownData.paymentTypes,
+    t
   );
   const { filter, showFilters, setShowFilters, onResetFilter } = useFilter();
   const [canFetch, setCanFetch] = useState<boolean>(false);
@@ -198,9 +201,13 @@ const ArrangementPage = () => {
       <Modal
         title={
           isEditArrangement ? (
-            <div style={{ textAlign: "center" }}>Uredi aranžman</div>
+            <div style={{ textAlign: "center" }}>
+              {t("modal.editArrangement")}
+            </div>
           ) : (
-            <div style={{ textAlign: "center" }}>Dodaj novi aranžman</div>
+            <div style={{ textAlign: "center" }}>
+              {t("modal.createArrangement")}
+            </div>
           )
         }
         maskClosable={false}
@@ -224,11 +231,12 @@ const ArrangementPage = () => {
           setDataState={setDataState}
           setHidePaymentType={setHidePaymentType}
           setValue={setValue}
+          t={t}
         />
       </Modal>
       <div style={{ padding: "16px" }}>
         <HeaderButtonsComponent
-          buttonTitle="Dodaj aranžman"
+          buttonTitle={t("button.addArrangement")}
           onButtonAction={() => handleModal(true)}
           onFilterAction={() => setShowFilters((prev) => !prev)}
         />
@@ -257,6 +265,7 @@ const ArrangementPage = () => {
           setDisableEditField={setDisableEditField}
           setHidePaymentType={setHidePaymentType}
           setIsEditArrangement={setIsEditArrangement}
+          t={t}
         />
       </div>
     </>

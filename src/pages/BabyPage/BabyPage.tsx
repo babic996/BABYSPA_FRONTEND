@@ -15,6 +15,7 @@ import useUpdateEffect from "../../hooks/useUpdateEffect";
 import BabyModalContent from "../../components/BabyModalContent/BabyModalContent";
 import TableComponent from "./TableComponent";
 import { handleApiError } from "../../util/const";
+import { useTranslation } from "react-i18next";
 
 const BabyPage = () => {
   const isModalOpen = useRef<boolean>(false);
@@ -24,8 +25,9 @@ const BabyPage = () => {
     totalElements: undefined as number | undefined,
     loading: true,
   });
+  const { t } = useTranslation();
   const [isEditBaby, setIsEditBaby] = useState<boolean>(false);
-  const schema = getBabyValidationSchema(isEditBaby);
+  const schema = getBabyValidationSchema(isEditBaby, t);
   const { filter, showFilters, setShowFilters, onResetFilter } = useFilter();
   const [canFetch, setCanFetch] = useState<boolean>(false);
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -121,9 +123,9 @@ const BabyPage = () => {
       <Modal
         title={
           isEditBaby ? (
-            <div style={{ textAlign: "center" }}>Uredi bebu</div>
+            <div style={{ textAlign: "center" }}>{t("modal.editBaby")}</div>
           ) : (
-            <div style={{ textAlign: "center" }}>Dodaj novu bebu</div>
+            <div style={{ textAlign: "center" }}>{t("modal.createBaby")}</div>
           )
         }
         maskClosable={false}
@@ -141,11 +143,12 @@ const BabyPage = () => {
           isEditBaby={isEditBaby}
           isModalOpen={isModalOpen}
           setDataState={setDataState}
+          t={t}
         />
       </Modal>
       <div style={{ padding: "16px" }}>
         <HeaderButtonsComponent
-          buttonTitle="Dodaj bebu"
+          buttonTitle={t("button.addBaby")}
           onButtonAction={handleCreateModal}
           onFilterAction={() => setShowFilters((prev) => !prev)}
         />
@@ -164,6 +167,7 @@ const BabyPage = () => {
           reset={reset}
           setDataState={setDataState}
           setIsEditBaby={setIsEditBaby}
+          t={t}
         />
       </div>
     </>
