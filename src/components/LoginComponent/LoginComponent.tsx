@@ -104,8 +104,8 @@ const LoginComponent = () => {
       </Row>
       <FloatButton.Group
         trigger="click"
-        icon={<FaGlobe />}
-        style={{ right: 24, bottom: 24 }}
+        icon={<FaGlobe color="#1677FF" />}
+        style={{ right: 24, bottom: 8 }}
       >
         <FloatButton description="EN" onClick={() => changeLanguage("en")} />
         <FloatButton description="BHS" onClick={() => changeLanguage("bhs")} />

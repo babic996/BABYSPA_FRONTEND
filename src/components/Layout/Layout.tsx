@@ -303,8 +303,15 @@ const Layout = () => {
       </AntLayout>
       <FloatButton.Group
         trigger="click"
-        icon={<FaGlobe />}
-        style={{ right: 24, bottom: 24 }}
+        icon={<FaGlobe color="#1677FF" />}
+        style={{
+          position: "fixed",
+          left: collapsed || isMobile ? 40 + 10 : 220 + 10,
+          bottom: 8,
+          margin: 0,
+          right: "auto",
+          transition: "left 0.3s ease",
+        }}
       >
         <FloatButton description="EN" onClick={() => changeLanguage("en")} />
         <FloatButton description="BHS" onClick={() => changeLanguage("bhs")} />
