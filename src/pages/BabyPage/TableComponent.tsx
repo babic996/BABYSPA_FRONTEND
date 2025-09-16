@@ -14,6 +14,7 @@ import React, { MutableRefObject, useRef, useState } from "react";
 import { UseFormReset } from "react-hook-form";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useFilter } from "../../context/Filter/useFilter";
+import { TFunction } from "i18next";
 
 interface TableComponentProps {
   setIsEditBaby: React.Dispatch<React.SetStateAction<boolean>>;
@@ -22,6 +23,7 @@ interface TableComponentProps {
   isModalOpen: MutableRefObject<boolean>;
   reset: UseFormReset<BabyInterface>;
   isMobile: boolean;
+  t: TFunction;
 }
 
 const TableComponent: React.FC<TableComponentProps> = ({
@@ -31,6 +33,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
   isModalOpen,
   reset,
   isMobile,
+  t,
 }) => {
   const [currentNote, setCurrentNote] = useState<string>("");
   const isInfoModalVisible = useRef<boolean>(false);
@@ -79,7 +82,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
           babies: result.data.content,
           totalElements: result.data.totalElements,
         }));
-        toastSuccessNotification("Obrisano!");
+        toastSuccessNotification(t("common.succesfullyDeleted"));
         onResetFilter();
       } catch (e) {
         toastErrorNotification(handleApiError(e));
@@ -93,53 +96,53 @@ const TableComponent: React.FC<TableComponentProps> = ({
 
   const columns: ColumnsType<BabyInterface> = [
     {
-      title: "ID bebe",
+      title: t("table.babyId"),
       dataIndex: "babyId",
       key: "babyId",
     },
     {
-      title: "Ime",
+      title: t("table.babyName"),
       dataIndex: "babyName",
       key: "babyName",
     },
     {
-      title: "Prezime",
+      title: t("table.babySurname"),
       dataIndex: "babySurname",
       key: "babySurname",
       render: (value) => {
-        return value ? value : "Nema podatka";
+        return value ? value : t("table.noDataCell");
       },
     },
     {
-      title: "Datum rođenja",
+      title: t("table.birthDate"),
       dataIndex: "birthDate",
       key: "birthDate",
       render: (value) => {
         return value
-          ? dayjs(value).format("DD.MM.YYYY.") + " godine"
-          : "Nema podatka";
+          ? dayjs(value).format("DD.MM.YYYY.") + " " + t("common.years")
+          : t("table.noDataCell");
       },
     },
     {
-      title: "Broj mjeseci",
+      title: t("table.numberOfMonths"),
       dataIndex: "numberOfMonths",
       key: "numberOfMonths",
     },
     {
-      title: "Telefon",
+      title: t("table.phoneNumber"),
       dataIndex: "phoneNumber",
       key: "phoneNumber",
     },
     {
-      title: "Ime majke",
+      title: t("table.motherName"),
       dataIndex: "motherName",
       key: "motherName",
       render: (value) => {
-        return value ? value : "Nema podatka";
+        return value ? value : t("table.noDataCell");
       },
     },
     {
-      title: "Bilješka",
+      title: t("table.note"),
       dataIndex: "note",
       key: "note",
       render: (value) => {
@@ -157,27 +160,31 @@ const TableComponent: React.FC<TableComponentProps> = ({
       },
     },
     {
-      title: "Akcije",
+      title: t("table.actions"),
       key: "actions",
       render: (_, record) => (
         <>
           <EditOutlined
-            title="Uredi"
+            title={t("button.edit")}
             style={{ marginRight: 16 }}
             onClick={() => handleEdit(record)}
           />
           <Popconfirm
-            title="Da li ste sigurni da želite izbrisati ovu bebu?"
+            title={t("table.deleteConfirmBaby")}
             onConfirm={() => handleDelete(record.babyId)}
-            okText="Da"
-            cancelText="Ne"
+            okText={t("button.confirm")}
+            cancelText={t("button.cancel")}
           >
-            <DeleteOutlined style={{ color: "red" }} title="Izbriši" />
+            <DeleteOutlined
+              style={{ color: "red" }}
+              title={t("button.delete")}
+            />
           </Popconfirm>
         </>
       ),
     },
   ];
+
   return (
     <>
       <InfoModal
@@ -193,38 +200,42 @@ const TableComponent: React.FC<TableComponentProps> = ({
               loading={dataState.loading}
               handleEdit={() => handleEdit(x)}
               handleDelete={() => handleDelete(x.babyId)}
-              deleteTitle="Da li ste sigurni da želite izbrisati ovu bebu?"
+              deleteTitle={t("table.deleteConfirmBaby")}
               columns={[
-                { title: "ID bebe", value: x.babyId },
+                { title: t("table.babyId"), value: x.babyId },
                 {
-                  title: "Ime",
-                  value: x.babyName ? x.babyName : "Nema podataka",
+                  title: t("table.babyName"),
+                  value: x.babyName ? x.babyName : t("table.noDataCell"),
                 },
                 {
-                  title: "Prezime",
-                  value: x.babySurname ? x.babySurname : "Nema podataka",
+                  title: t("table.babySurname"),
+                  value: x.babySurname ? x.babySurname : t("table.noDataCell"),
                 },
                 {
-                  title: "Datum rođenja",
+                  title: t("table.birthDate"),
                   value: x.birthDate
-                    ? dayjs(x.birthDate).format("DD.MM.YYYY.") + " godine"
-                    : "Nema podatka",
+                    ? dayjs(x.birthDate).format("DD.MM.YYYY.") +
+                      " " +
+                      t("common.years")
+                    : t("table.noDataCell"),
                 },
                 {
-                  title: "Broj mjeseci",
-                  value: x.numberOfMonths ? x.numberOfMonths : "Nema podataka",
+                  title: t("table.numberOfMonths"),
+                  value: x.numberOfMonths
+                    ? x.numberOfMonths
+                    : t("table.noDataCell"),
                 },
                 {
-                  title: "Telefon",
-                  value: x.phoneNumber ? x.phoneNumber : "Nema podataka",
+                  title: t("table.phoneNumber"),
+                  value: x.phoneNumber ? x.phoneNumber : t("table.noDataCell"),
                 },
                 {
-                  title: "Ime majke",
-                  value: x.motherName ? x.motherName : "Nema podataka",
+                  title: t("table.motherName"),
+                  value: x.motherName ? x.motherName : t("table.noDataCell"),
                 },
                 {
-                  title: "Bilješka",
-                  value: x.note ? x.note : "Nema podataka",
+                  title: t("table.note"),
+                  value: x.note ? x.note : t("table.noDataCell"),
                   isPreviewable: x.note && x.note.length > 3 ? true : false,
                   onNoteClick: () => handleOpenInfoModal(x.note),
                 },
@@ -237,7 +248,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
             total={dataState.totalElements}
             onChange={nextPage}
             showSizeChanger={false}
-            locale={{ items_per_page: "po stranici" }}
+            locale={{ items_per_page: t("table.perPage") }}
             style={{ justifyContent: "center" }}
           />
         </>
@@ -249,7 +260,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
           dataSource={dataState.babies}
           rowKey="babyId"
           locale={{
-            emptyText: "Nema podataka za prikazati",
+            emptyText: t("table.emptyTable"),
           }}
           pagination={{
             current: dataState.cursor,

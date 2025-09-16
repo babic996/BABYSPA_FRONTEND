@@ -1,6 +1,7 @@
 import * as Yup from "yup";
+import { TFunction } from "i18next";
 
-export const getReservationSchema = (isUpdate: boolean) => {
+export const getReservationSchema = (isUpdate: boolean, t: TFunction) => {
   return Yup.object().shape({
     reservationId: Yup.number()
       .nullable()
@@ -13,7 +14,8 @@ export const getReservationSchema = (isUpdate: boolean) => {
       .nullable()
       .when([], {
         is: () => !isUpdate,
-        then: (schema) => schema.required("Odaberite datum rezervacije"),
+        then: (schema) =>
+          schema.required(t("reservationValidation.startDateRequired")),
         otherwise: (schema) => schema,
       }),
     durationReservation: Yup.number()
@@ -22,22 +24,24 @@ export const getReservationSchema = (isUpdate: boolean) => {
         is: () => !isUpdate,
         then: (schema) =>
           schema
-            .required("Vrijeme trajanja rezervacije je obavezno")
-            .min(1, "Vrijeme trajanja rezervacije mora biti veće od 0 minuta"),
+            .required(t("reservationValidation.durationReservationRequired"))
+            .min(1, t("reservationValidation.durationReservationMin")),
         otherwise: (schema) => schema,
       }),
     arrangementId: Yup.number()
       .nullable()
       .when([], {
         is: () => !isUpdate,
-        then: (schema) => schema.required("Odaberite aranžman"),
+        then: (schema) =>
+          schema.required(t("reservationValidation.arrangementIdRequired")),
         otherwise: (schema) => schema,
       }),
     statusId: Yup.number()
       .nullable()
       .when([], {
         is: () => isUpdate,
-        then: (schema) => schema.required("Odaberite status"),
+        then: (schema) =>
+          schema.required(t("reservationValidation.statusIdRequired")),
         otherwise: (schema) => schema,
       }),
     note: Yup.string().nullable(),

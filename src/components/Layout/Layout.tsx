@@ -11,9 +11,10 @@ import {
   FaUserEdit,
   FaUserShield,
   FaCog,
+  FaGlobe,
 } from "react-icons/fa";
 import { useEffect, useState } from "react";
-import { Layout as AntLayout, Menu, Modal } from "antd";
+import { Layout as AntLayout, FloatButton, Menu, Modal } from "antd";
 import "./Layout.scss";
 import { useAuth } from "../../context/Auth/useAuth";
 import useMediaQuery from "../../hooks/useMediaQuery";
@@ -29,6 +30,7 @@ import { getRoles } from "../../services/RoleService";
 import { UserInfoInterface } from "../../interfaces/UserInterface";
 import AssignRoleModalComponent from "../AssignRoleModalComponent/AssignRoleModalComponent";
 import CreateAndEditUserComponent from "../CreateAndEditUserComponent/CreateAndEditUserComponent";
+import { useTranslation } from "react-i18next";
 const { Sider, Content } = AntLayout;
 
 const Layout = () => {
@@ -49,6 +51,7 @@ const Layout = () => {
     null
   );
   const [selectedRoles, setSelectedRoles] = useState<number[]>([]);
+  const { t, i18n } = useTranslation();
 
   const {
     control,
@@ -104,6 +107,10 @@ const Layout = () => {
     );
   }, [userRoles]);
 
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -128,29 +135,29 @@ const Layout = () => {
       icon: <FaHome />,
       label: (
         <NavLink to="/" end>
-          Pregled rezervacija
+          {t("menu.reservations")}
         </NavLink>
       ),
     },
     {
       key: "/baby",
       icon: <FaChild />,
-      label: <NavLink to="/baby">Bebe</NavLink>,
+      label: <NavLink to="/baby">{t("menu.babies")}</NavLink>,
     },
     {
       key: "/service-package",
       icon: <FaBoxes />,
-      label: <NavLink to="/service-package">Paketi usluga</NavLink>,
+      label: <NavLink to="/service-package">{t("menu.packages")}</NavLink>,
     },
     {
       key: "/arrangement",
       icon: <FaListUl />,
-      label: <NavLink to="/arrangement">Aranžmani</NavLink>,
+      label: <NavLink to="/arrangement">{t("menu.arrangements")}</NavLink>,
     },
     {
       key: "/report",
       icon: <FaFileAlt />,
-      label: <NavLink to="/report">Izvještaji</NavLink>,
+      label: <NavLink to="/report">{t("menu.reports")}</NavLink>,
     },
   ];
 
@@ -162,29 +169,37 @@ const Layout = () => {
       children: [
         {
           key: "logout",
-          label: <a onClick={handleLogout}>Odjavi se</a>,
+          label: <a onClick={handleLogout}>{t("user_menu.logout")}</a>,
           icon: <FaSignOutAlt />,
         },
         hasAccess && {
           key: "settings",
-          label: <NavLink to="/settings">Podešavanja</NavLink>,
+          label: <NavLink to="/settings">{t("user_menu.settings")}</NavLink>,
           icon: <FaCog />,
         },
         {
           key: "edit-user",
-          label: <a onClick={() => handleOpenUserModal(true)}>Uredi nalog</a>,
+          label: (
+            <a onClick={() => handleOpenUserModal(true)}>
+              {t("user_menu.edit_profile")}
+            </a>
+          ),
           icon: <FaUserEdit />,
         },
         hasAccess && {
           key: "register",
           label: (
-            <a onClick={() => handleOpenUserModal(false)}>Kreiraj nalog</a>
+            <a onClick={() => handleOpenUserModal(false)}>
+              {t("user_menu.create_account")}
+            </a>
           ),
           icon: <FaUserPlus />,
         },
         hasAccess && {
           key: "assign-role",
-          label: <a onClick={handleAssignRoleModal}>Dodijeli uloge</a>,
+          label: (
+            <a onClick={handleAssignRoleModal}>{t("user_menu.assign_roles")}</a>
+          ),
           icon: <FaUserShield />,
         },
       ].filter(Boolean),
@@ -196,7 +211,7 @@ const Layout = () => {
   return (
     <>
       <Modal
-        title={isEditUser ? "Uredi nalog" : "Kreiraj nalog"}
+        title={isEditUser ? t("modal.edit_account") : t("modal.create_account")}
         maskClosable={false}
         open={isUserModalOpen}
         footer={null}
@@ -215,7 +230,7 @@ const Layout = () => {
       </Modal>
 
       <Modal
-        title="Dodijeli uloge"
+        title={t("user_menu.assign_roles")}
         maskClosable={false}
         open={isAssignRoleModalOpen}
         footer={null}
@@ -286,6 +301,14 @@ const Layout = () => {
           </Content>
         </AntLayout>
       </AntLayout>
+      <FloatButton.Group
+        trigger="click"
+        icon={<FaGlobe />}
+        style={{ right: 24, bottom: 24 }}
+      >
+        <FloatButton description="EN" onClick={() => changeLanguage("en")} />
+        <FloatButton description="BHS" onClick={() => changeLanguage("bhs")} />
+      </FloatButton.Group>
     </>
   );
 };

@@ -22,6 +22,7 @@ import {
 } from "../../interfaces/ServicePackageInterface";
 import { Button, Form, Input, InputNumber } from "antd";
 import { useFilter } from "../../context/Filter/useFilter";
+import { TFunction } from "i18next";
 
 interface ServicePackageModalContentProps {
   isEditServicePackage: boolean;
@@ -32,6 +33,7 @@ interface ServicePackageModalContentProps {
   handleSubmit: UseFormHandleSubmit<ServicePackageInterface>;
   errors: FieldErrors<ServicePackageInterface>;
   isModalOpen: MutableRefObject<boolean>;
+  t: TFunction;
 }
 
 const ServicePackageModalContent: React.FC<ServicePackageModalContentProps> = ({
@@ -43,6 +45,7 @@ const ServicePackageModalContent: React.FC<ServicePackageModalContentProps> = ({
   isEditServicePackage,
   isModalOpen,
   setDataState,
+  t,
 }) => {
   const { onResetFilter } = useFilter();
   const onSubmit: SubmitHandler<ServicePackageInterface> = async (data) => {
@@ -59,7 +62,7 @@ const ServicePackageModalContent: React.FC<ServicePackageModalContentProps> = ({
           ),
         }));
         isModalOpen.current = false;
-        toastSuccessNotification("Ažurirano!");
+        toastSuccessNotification(t("common.succesfullyEdited"));
         onResetFilter();
       } else {
         await addServicePackage(data);
@@ -70,7 +73,7 @@ const ServicePackageModalContent: React.FC<ServicePackageModalContentProps> = ({
           totalElements: result.data.totalElements,
         }));
         isModalOpen.current = false;
-        toastSuccessNotification("Sačuvano!");
+        toastSuccessNotification(t("common.succesfullyAdded"));
         onResetFilter();
       }
     } catch (e) {
@@ -82,7 +85,7 @@ const ServicePackageModalContent: React.FC<ServicePackageModalContentProps> = ({
   return (
     <Form onFinish={handleSubmit(onSubmit)} layout="vertical">
       <Form.Item
-        label="Naziv paketa usluge"
+        label={t("modal.servicePackageName")}
         validateStatus={errors.servicePackageName ? "error" : ""}
         help={errors.servicePackageName?.message}
         style={{ marginBottom: 8 }}
@@ -97,7 +100,7 @@ const ServicePackageModalContent: React.FC<ServicePackageModalContentProps> = ({
       </Form.Item>
 
       <Form.Item
-        label="Broj termina"
+        label={t("modal.termNumber")}
         validateStatus={errors.termNumber ? "error" : ""}
         help={errors.termNumber?.message}
         style={{ marginBottom: 8 }}
@@ -117,7 +120,7 @@ const ServicePackageModalContent: React.FC<ServicePackageModalContentProps> = ({
       </Form.Item>
 
       <Form.Item
-        label="Broj dana trajanja paketa"
+        label={t("modal.servicePackageDurationDays")}
         validateStatus={errors.servicePackageDurationDays ? "error" : ""}
         help={errors.servicePackageDurationDays?.message}
         style={{ marginBottom: 8 }}
@@ -137,7 +140,7 @@ const ServicePackageModalContent: React.FC<ServicePackageModalContentProps> = ({
       </Form.Item>
 
       <Form.Item
-        label="Cijena"
+        label={t("modal.price")}
         validateStatus={errors.price ? "error" : ""}
         help={errors.price?.message}
         style={{ marginBottom: 8 }}
@@ -157,7 +160,7 @@ const ServicePackageModalContent: React.FC<ServicePackageModalContentProps> = ({
       </Form.Item>
 
       <Form.Item
-        label="Bilješka"
+        label={t("modal.note")}
         validateStatus={errors.note ? "error" : ""}
         help={errors.note?.message}
         style={{ marginBottom: 8 }}
@@ -187,7 +190,7 @@ const ServicePackageModalContent: React.FC<ServicePackageModalContentProps> = ({
         wrapperCol={{ span: 24 }}
       >
         <Button type="primary" htmlType="submit">
-          Sačuvaj
+          {t("button.save")}
         </Button>
       </Form.Item>
     </Form>

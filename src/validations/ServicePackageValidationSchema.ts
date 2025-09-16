@@ -1,32 +1,39 @@
 import * as yup from "yup";
+import { TFunction } from "i18next";
 
-export const getServicePackageValidationSchema = (isUpdate: boolean) => {
+export const getServicePackageValidationSchema = (
+  isUpdate: boolean,
+  t: TFunction
+) => {
   return yup.object().shape({
     servicePackageId: yup
       .number()
       .nullable()
       .when([], {
         is: () => isUpdate,
-        then: (schema) => schema.required(),
+        then: (schema) =>
+          schema.required(
+            t("servicePackageValidation.servicePackageIdRequired")
+          ),
         otherwise: (schema) => schema.nullable(),
       }),
     servicePackageName: yup
       .string()
-      .required("Morate unijeti naziv paketa usluge")
+      .required(t("servicePackageValidation.servicePackageNameRequired"))
       .trim(),
     termNumber: yup
       .number()
-      .min(1, "Broj termina mora biti veći od 0")
-      .required("Morate unijeti broj termina"),
+      .min(1, t("servicePackageValidation.termNumberMin"))
+      .required(t("servicePackageValidation.termNumberRequired")),
     servicePackageDurationDays: yup
       .number()
-      .min(1, "Broj dana koliko traje paket usluge mora biti veći od 0")
-      .required("Morate unijeti broj dana koliko traje paket usluge"),
+      .min(1, t("servicePackageValidation.durationDaysMin"))
+      .required(t("servicePackageValidation.durationDaysRequired")),
     price: yup
       .number()
-      .required("Cijena je obavezna")
-      .positive("Cijena mora biti pozitivan broj")
-      .typeError("Cijena mora biti broj"),
+      .required(t("servicePackageValidation.priceRequired"))
+      .positive(t("servicePackageValidation.pricePositive"))
+      .typeError(t("servicePackageValidation.priceTypeError")),
     note: yup.string().nullable().optional(),
   });
 };

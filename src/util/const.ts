@@ -1,4 +1,5 @@
 import axios from "axios";
+import i18n from "i18next";
 
 export const DEFAULT_PAGE_SIZE = 10;
 
@@ -16,9 +17,9 @@ export const calendarMessages = {
 };
 
 export const groupDataReportType = [
-  { value: "day", name: "Grupiši rezultate po danu" },
-  { value: "month", name: "Grupiši rezultate po mjesecu" },
-  { value: "year", name: "Grupiši rezultate po godini" },
+  { value: "day", name: () => i18n.t("common.groupDataDay") },
+  { value: "month", name: () => i18n.t("common.groupDataMonth") },
+  { value: "year", name: () => i18n.t("common.groupDataYear") },
 ];
 
 export const ROLES = {
@@ -30,21 +31,6 @@ export const ROLES = {
   SERVICE_PACKAGE_MAINTAINER: "SERVICE_PACKAGE_MAINTAINER",
   REPORT_OVERVIEW: "REPORT_OVERVIEW",
 };
-
-export const monthNames = [
-  "Januar",
-  "Februar",
-  "Mart",
-  "April",
-  "Maj",
-  "Jun",
-  "Jul",
-  "Avgust",
-  "Septembar",
-  "Oktobar",
-  "Novembar",
-  "Decembar",
-];
 
 export const handleApiError = (error: unknown): string => {
   if (axios.isCancel(error)) {
@@ -60,19 +46,7 @@ export const handleApiError = (error: unknown): string => {
 
 export const descriptionRole = (role: string): string => {
   const roleName = role.replace("ROLE_", "");
-
-  switch (roleName) {
-    case "RESERVATION_MAINTAINER":
-      return "Pregled i upravljanje rezervacijama";
-    case "BABY_MAINTAINER":
-      return "Pregled i upravljanje bebama";
-    case "ARRANGEMENT_MAINTAINER":
-      return "Pregled i upravljanje aranžmanima";
-    case "SERVICE_PACKAGE_MAINTAINER":
-      return "Pregled i upravljanje paketima usluga";
-    case "REPORT_OVERVIEW":
-      return "Pregled izveštaja";
-    default:
-      return roleName;
-  }
+  return i18n.t(`common.roleDescriptions.${roleName}`, {
+    defaultValue: roleName,
+  });
 };

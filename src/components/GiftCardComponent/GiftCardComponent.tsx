@@ -33,15 +33,17 @@ import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import HeaderButtonsComponent from "../HeaderButtonsComponent/HeaderButtonsComponent";
 import FilterComponent from "../FilterComponent/FilterComponent";
 import TableCard from "../TableCard/TableCard";
+import { useTranslation } from "react-i18next";
 
 const GiftCardComponent = () => {
   const isModalOpen = useRef<boolean>(false);
+  const { t } = useTranslation();
   const [cursor, setCursor] = useState<number>(1);
   const [giftCards, setGiftCards] = useState<GiftCardInterface[]>([]);
   const [totalElements, setTotalElements] = useState<number>();
   const [isEditGiftCard, setIsEditGiftCard] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const schema = getGiftCardValidationSchema(isEditGiftCard);
+  const schema = getGiftCardValidationSchema(isEditGiftCard, t);
   const { filter, showFilters, setShowFilters, onResetFilter } = useFilter();
   const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -106,7 +108,7 @@ const GiftCardComponent = () => {
         const result = await getGiftCards(cursor - 1, null);
         setGiftCards(result.data.content);
         setTotalElements(result.data.totalElements);
-        toastSuccessNotification("Obrisano!");
+        toastSuccessNotification(t("common.succesfullyDeleted"));
       } catch (e) {
         toastErrorNotification(handleApiError(e));
       } finally {
@@ -154,14 +156,14 @@ const GiftCardComponent = () => {
           )
         );
         isModalOpen.current = false;
-        toastSuccessNotification("Ažurirano!");
+        toastSuccessNotification(t("common.succesfullyEdited"));
       } else {
         await addGiftCard(data);
         const result = await getGiftCards(cursor - 1, null);
         setGiftCards(result.data.content);
         setTotalElements(result.data.totalElements);
         isModalOpen.current = false;
-        toastSuccessNotification("Sačuvano!");
+        toastSuccessNotification(t("common.succesfullyAdded"));
       }
     } catch (e) {
       toastErrorNotification(handleApiError(e));
@@ -174,60 +176,62 @@ const GiftCardComponent = () => {
 
   const columns: ColumnsType<GiftCardInterface> = [
     {
-      title: "ID poklon kartice",
+      title: t("table.giftCardId"),
       dataIndex: "giftCardId",
       key: "giftCardId",
     },
     {
-      title: "Serijski broj",
+      title: t("table.serialNumber"),
       dataIndex: "serialNumber",
       key: "serialNumber",
     },
     {
-      title: "Datum važenja kartice",
+      title: t("table.expirationDate"),
       dataIndex: "expirationDate",
       key: "expirationDate",
       render: (value) => {
         return value
-          ? dayjs(value).format("DD.MM.YYYY.") + " godine"
-          : "Nema podatka";
+          ? dayjs(value).format("DD.MM.YYYY.") + " " + t("common.years")
+          : t("table.noDataCell");
       },
     },
     {
-      title: "Status kartice",
+      title: t("table.status"),
       dataIndex: "used",
       key: "used",
-      render: (value) => {
-        return value === true ? "Iskorištena" : "Nije iskorištena";
-      },
+      render: (value) =>
+        value ? t("table.usedStatus.true") : t("table.usedStatus.false"),
     },
     {
-      title: "Aranžman",
+      title: t("table.arrangement"),
       dataIndex: "arrangementId",
       key: "arrangementId",
       render: (value, record) => {
         return value
-          ? `ID aranžmana: ${value} (${record.phoneNumber})`
-          : "Nema podataka";
+          ? `${t("table.arrangementId")}: ${value} (${record.phoneNumber})`
+          : t("table.noDataCell");
       },
     },
     {
-      title: "Akcije",
+      title: t("table.actions"),
       key: "actions",
       render: (_, record) => (
         <>
           <EditOutlined
-            title="Uredi"
+            title={t("button.edit")}
             style={{ marginRight: 16 }}
             onClick={() => handleEdit(record)}
           />
           <Popconfirm
-            title="Da li ste sigurni da želite izbrisati ovu poklon karticu?"
+            title={t("table.deleteConfirmGiftCard")}
             onConfirm={() => handleDelete(record.giftCardId)}
-            okText="Da"
-            cancelText="Ne"
+            okText={t("button.confirm")}
+            cancelText={t("button.cancel")}
           >
-            <DeleteOutlined style={{ color: "red" }} title="Izbriši" />
+            <DeleteOutlined
+              style={{ color: "red" }}
+              title={t("button.delete")}
+            />
           </Popconfirm>
         </>
       ),
@@ -239,9 +243,11 @@ const GiftCardComponent = () => {
       <Modal
         title={
           isEditGiftCard ? (
-            <div style={{ textAlign: "center" }}>Uredi poklon karticu</div>
+            <div style={{ textAlign: "center" }}>{t("modal.editGiftCard")}</div>
           ) : (
-            <div style={{ textAlign: "center" }}>Dodaj novu poklon karticu</div>
+            <div style={{ textAlign: "center" }}>
+              {t("modal.createGiftCard")}
+            </div>
           )
         }
         maskClosable={false}
@@ -253,7 +259,7 @@ const GiftCardComponent = () => {
       >
         <Form onFinish={handleSubmit(onSubmit)} layout="vertical">
           <Form.Item
-            label="Serijski broj"
+            label={t("modal.serialNumber")}
             validateStatus={errors.serialNumber ? "error" : ""}
             help={errors.serialNumber?.message}
             style={{ marginBottom: 8 }}
@@ -267,7 +273,7 @@ const GiftCardComponent = () => {
 
           {isEditGiftCard && (
             <Form.Item
-              label="Status kartice"
+              label={t("modal.selectStatus")}
               validateStatus={errors.used ? "error" : ""}
               help={errors.used?.message}
               style={{ marginBottom: 8 }}
@@ -279,8 +285,8 @@ const GiftCardComponent = () => {
                   <Switch
                     checked={value}
                     onChange={onChange}
-                    checkedChildren="Iskorištena"
-                    unCheckedChildren="Nije iskorištena"
+                    checkedChildren={t("table.usedStatus.true")}
+                    unCheckedChildren={t("table.usedStatus.false")}
                   />
                 )}
               />
@@ -288,7 +294,7 @@ const GiftCardComponent = () => {
           )}
 
           <Form.Item
-            label="Datum isteka kartice"
+            label={t("modal.expirationDate")}
             validateStatus={errors.expirationDate ? "error" : ""}
             help={errors.expirationDate?.message}
             style={{ marginBottom: 8 }}
@@ -315,14 +321,14 @@ const GiftCardComponent = () => {
             wrapperCol={{ span: 24 }}
           >
             <Button type="primary" htmlType="submit">
-              Sačuvaj
+              {t("button.save")}
             </Button>
           </Form.Item>
         </Form>
       </Modal>
       <div style={{ padding: "16px" }}>
         <HeaderButtonsComponent
-          buttonTitle="Dodaj poklon karticu"
+          buttonTitle={t("button.addGiftCard")}
           onButtonAction={handleCreateModal}
           onFilterAction={() => setShowFilters((prev) => !prev)}
         />
@@ -342,29 +348,40 @@ const GiftCardComponent = () => {
                 loading={loading}
                 handleEdit={() => handleEdit(x)}
                 handleDelete={() => handleDelete(x.giftCardId)}
-                deleteTitle="Da li ste sigurni da želite izbrisati ovu poklon karticu?"
+                deleteTitle={t("table.deleteConfirmGiftCard")}
                 columns={[
-                  { title: "ID bebe", value: x.giftCardId },
                   {
-                    title: "Serijski broj",
-                    value: x.serialNumber ? x.serialNumber : "Nema podataka",
+                    title: t("table.giftCardId"),
+                    value: x.giftCardId,
                   },
                   {
-                    title: "Datum važenja kartice",
+                    title: t("table.serialNumber"),
+                    value: x.serialNumber
+                      ? x.serialNumber
+                      : t("table.noDataCell"),
+                  },
+                  {
+                    title: t("table.expirationDate"),
                     value: x.expirationDate
                       ? dayjs(x.expirationDate).format("DD.MM.YYYY.") +
-                        " godine"
-                      : "Nema podatka",
+                        " " +
+                        t("common.years")
+                      : t("table.noDataCell"),
                   },
                   {
-                    title: "Status kartice",
-                    value: x.used === true ? "Iskorištena" : "Nije iskorištena",
+                    title: t("table.status"),
+                    value:
+                      x.used === true
+                        ? t("table.usedStatus.true")
+                        : t("table.usedStatus.false"),
                   },
                   {
-                    title: "Aranžman",
+                    title: t("table.arrangement"),
                     value: x.arrangementId
-                      ? `ID aranžmana: ${x.arrangementId} (${x.phoneNumber})`
-                      : "Nema podataka",
+                      ? `${t("table.arrangementId")}: ${x.arrangementId} (${
+                          x.phoneNumber
+                        })`
+                      : t("table.noDataCell"),
                   },
                 ]}
               />
@@ -375,7 +392,7 @@ const GiftCardComponent = () => {
               total={totalElements}
               onChange={nextPage}
               showSizeChanger={false}
-              locale={{ items_per_page: "po stranici" }}
+              locale={{ items_per_page: t("table.perPage") }}
               style={{ justifyContent: "center" }}
             />
           </>
@@ -387,7 +404,7 @@ const GiftCardComponent = () => {
             dataSource={giftCards}
             rowKey="giftCardId"
             locale={{
-              emptyText: "Nema podataka za prikazati",
+              emptyText: t("table.emptyTable"),
             }}
             pagination={{
               current: cursor,

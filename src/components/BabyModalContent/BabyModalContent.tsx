@@ -16,6 +16,7 @@ import { addBaby, editBaby, getBabies } from "../../services/BabyService";
 import { Button, DatePicker, Form, Input, InputNumber } from "antd";
 import dayjs from "dayjs";
 import { useFilter } from "../../context/Filter/useFilter";
+import { TFunction } from "i18next";
 
 interface BabyModalContentProps {
   isEditBaby: boolean;
@@ -25,6 +26,7 @@ interface BabyModalContentProps {
   handleSubmit: UseFormHandleSubmit<BabyInterface>;
   errors: FieldErrors<BabyInterface>;
   isModalOpen: MutableRefObject<boolean>;
+  t: TFunction;
 }
 
 const BabyModalContent: React.FC<BabyModalContentProps> = ({
@@ -35,6 +37,7 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
   isEditBaby,
   isModalOpen,
   setDataState,
+  t,
 }) => {
   const { onResetFilter } = useFilter();
   const onSubmit: SubmitHandler<BabyInterface> = async (data) => {
@@ -49,7 +52,7 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
           ),
         }));
         isModalOpen.current = false;
-        toastSuccessNotification("Ažurirano!");
+        toastSuccessNotification(t("common.succesfullyEdited"));
         onResetFilter();
       } else {
         await addBaby(data);
@@ -60,7 +63,7 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
           totalElements: result.data.totalElements,
         }));
         isModalOpen.current = false;
-        toastSuccessNotification("Sačuvano!");
+        toastSuccessNotification(t("common.succesfullyAdded"));
         onResetFilter();
       }
     } catch (e) {
@@ -72,7 +75,7 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
   return (
     <Form onFinish={handleSubmit(onSubmit)} layout="vertical">
       <Form.Item
-        label="Ime"
+        label={t("modal.babyName")}
         validateStatus={errors.babyName ? "error" : ""}
         help={errors.babyName?.message}
         style={{ marginBottom: 8 }}
@@ -85,7 +88,7 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
       </Form.Item>
 
       <Form.Item
-        label="Prezime"
+        label={t("modal.babySurname")}
         validateStatus={errors.babySurname ? "error" : ""}
         help={errors.babySurname?.message}
         style={{ marginBottom: 8 }}
@@ -98,7 +101,7 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
       </Form.Item>
 
       <Form.Item
-        label="Datum rođenja"
+        label={t("modal.birthDate")}
         validateStatus={errors.birthDate ? "error" : ""}
         help={errors.birthDate?.message}
         style={{ marginBottom: 8 }}
@@ -119,7 +122,7 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
       </Form.Item>
 
       <Form.Item
-        label="Broj mjeseci"
+        label={t("modal.numberOfMonths")}
         validateStatus={errors.numberOfMonths ? "error" : ""}
         help={errors.numberOfMonths?.message}
         style={{ marginBottom: 8 }}
@@ -134,7 +137,7 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
       </Form.Item>
 
       <Form.Item
-        label="Broj telefona"
+        label={t("modal.phoneNumber")}
         validateStatus={errors.phoneNumber ? "error" : ""}
         help={errors.phoneNumber?.message}
         style={{ marginBottom: 8 }}
@@ -147,7 +150,7 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
       </Form.Item>
 
       <Form.Item
-        label="Ime majke"
+        label={t("modal.motherName")}
         validateStatus={errors.motherName ? "error" : ""}
         help={errors.motherName?.message}
         style={{ marginBottom: 8 }}
@@ -160,7 +163,7 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
       </Form.Item>
 
       <Form.Item
-        label="Bilješka"
+        label={t("modal.note")}
         validateStatus={errors.note ? "error" : ""}
         help={errors.note?.message}
         style={{ marginBottom: 8 }}
@@ -174,7 +177,7 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
               value={field.value ?? ""}
               autoSize={{ minRows: 0, maxRows: 6 }}
               onKeyDown={(e) => {
-                if (e.key == "Enter") {
+                if (e.key === "Enter") {
                   e.preventDefault();
                   const newValue = `${field.value ?? ""}\n`;
                   field.onChange(newValue);
@@ -190,7 +193,7 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
         wrapperCol={{ span: 24 }}
       >
         <Button type="primary" htmlType="submit">
-          Sačuvaj
+          {t("button.save")}
         </Button>
       </Form.Item>
     </Form>

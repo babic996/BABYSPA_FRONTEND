@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 interface ServicePackageTooltipData {
   date: string;
   numberOfUsedPackages: number;
@@ -14,14 +16,15 @@ const CustomTooltipServicePackageReport = ({
   active?: boolean;
   payload?: ServicePackageTooltipPayload[];
 }) => {
+  const { t } = useTranslation();
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
       <div className="custom-tooltip">
-        <p style={{ color: "#fff" }}>{`Datum: ${data.date}`}</p>
-        <p
-          style={{ color: "#fff" }}
-        >{`Broj paketa usluge: ${data.numberOfUsedPackages}`}</p>
+        <p style={{ color: "#fff" }}>{`${t("common.date")}: ${data.date}`}</p>
+        <p style={{ color: "#fff" }}>{`${t(
+          "common.numberOfServicePackages"
+        )}: ${data.numberOfUsedPackages}`}</p>
       </div>
     );
   }

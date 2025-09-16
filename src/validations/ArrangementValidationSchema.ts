@@ -1,9 +1,11 @@
 import * as yup from "yup";
 import { PaymentTypeInterface } from "../interfaces/PaymentTypeInterface";
+import { TFunction } from "i18next";
 
 export const getArrangementValidationSchema = (
   isUpdate: boolean,
-  paymentTypes: PaymentTypeInterface[]
+  paymentTypes: PaymentTypeInterface[],
+  t: TFunction
 ) => {
   return yup.object().shape({
     arrangementId: yup
@@ -11,27 +13,29 @@ export const getArrangementValidationSchema = (
       .nullable()
       .when([], {
         is: () => isUpdate,
-        then: (schema) => schema.required("ID bebe je obavezan"),
+        then: (schema) =>
+          schema.required(t("arrangementValidation.arrangementIdRequired")),
         otherwise: (schema) => schema.nullable(),
       }),
     note: yup.string().nullable().optional(),
     discountId: yup.number().nullable().optional(),
     babyId: yup
       .number()
-      .min(1, "Odabir bebe je obavezan.")
-      .required("Odabir bebe je obavezan."),
+      .min(1, t("arrangementValidation.babyIdMin"))
+      .required(t("arrangementValidation.babyIdRequired")),
     statusId: yup
       .number()
       .nullable()
       .when([], {
         is: () => isUpdate,
-        then: (schema) => schema.required("Status je obavezan."),
+        then: (schema) =>
+          schema.required(t("arrangementValidation.statusIdRequired")),
         otherwise: (schema) => schema.nullable(),
       }),
     servicePackageId: yup
       .number()
-      .min(1, "Paket usluge je obavezan.")
-      .required("Paket usluge je obavezan."),
+      .min(1, t("arrangementValidation.servicePackageIdMin"))
+      .required(t("arrangementValidation.servicePackageIdRequired")),
     paymentTypeId: yup.number().nullable().optional(),
     extendDurationDays: yup.number().nullable().optional(),
     giftCardId: yup
@@ -44,7 +48,8 @@ export const getArrangementValidationSchema = (
           );
           return isUpdate && selectedPayment?.paymentTypeCode === "gift";
         },
-        then: (schema) => schema.required("Poklon kartica je obavezna."),
+        then: (schema) =>
+          schema.required(t("arrangementValidation.giftCardIdRequired")),
         otherwise: (schema) => schema.nullable(),
       }),
   });

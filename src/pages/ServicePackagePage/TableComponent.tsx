@@ -20,6 +20,7 @@ import {
 } from "../../services/ServicePackageService";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useFilter } from "../../context/Filter/useFilter";
+import { TFunction } from "i18next";
 
 interface TableComponentProps {
   setIsEditServicePackage: React.Dispatch<React.SetStateAction<boolean>>;
@@ -29,6 +30,7 @@ interface TableComponentProps {
   isModalOpen: MutableRefObject<boolean>;
   reset: UseFormReset<ServicePackageInterface>;
   isMobile: boolean;
+  t: TFunction;
 }
 
 const TableComponent: React.FC<TableComponentProps> = ({
@@ -39,6 +41,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
   setDataState,
   setIsEditServicePackage,
   setExistsByServicePackage,
+  t,
 }) => {
   const isInfoModalVisible = useRef<boolean>(false);
   const [currentNote, setCurrentNote] = useState<string>("");
@@ -82,7 +85,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
           servicePackages: result.data.content,
           totalElements: result.data.totalElements,
         }));
-        toastSuccessNotification("Obrisano!");
+        toastSuccessNotification(t("common.succesfullyDeleted"));
         onResetFilter();
       } catch (e) {
         toastErrorNotification(handleApiError(e));
@@ -108,47 +111,40 @@ const TableComponent: React.FC<TableComponentProps> = ({
 
   const columns: ColumnsType<ServicePackageInterface> = [
     {
-      title: "ID paketa usluge",
+      title: t("table.servicePackageId"),
       dataIndex: "servicePackageId",
       key: "servicePackageId",
     },
     {
-      title: "Naziv paketa usluge",
+      title: t("table.servicePackageName"),
       dataIndex: "servicePackageName",
       key: "servicePackageName",
     },
     {
-      title: "Broj termina",
+      title: t("table.termNumber"),
       dataIndex: "termNumber",
       key: "termNumber",
-      render: (value) => {
-        return value ? value : "Nema podatka";
-      },
+      render: (value) => (value ? value : t("table.noDataCell")),
     },
     {
-      title: "Trajanje paketa u danima",
+      title: t("table.servicePackageDurationDays"),
       dataIndex: "servicePackageDurationDays",
       key: "servicePackageDurationDays",
-      render: (value) => {
-        return value ? value : "Nema podatka";
-      },
+      render: (value) => (value ? value : t("table.noDataCell")),
     },
     {
-      title: "Cijena u KM",
+      title: t("table.servicePackagePrice"),
       dataIndex: "price",
       key: "price",
-      render: (value) => {
-        return value ? value.toFixed(2) : "Nema podatka";
-      },
+      render: (value) => (value ? value.toFixed(2) : t("table.noDataCell")),
     },
     {
-      title: "Bilješka",
+      title: t("table.servicePackageNote"),
       dataIndex: "note",
       key: "note",
       render: (value) => {
         const previewText =
           value?.length > 3 ? value.slice(0, 3) + "..." : value;
-
         return (
           <span
             onClick={() => handleOpenInfoModal(value)}
@@ -160,22 +156,25 @@ const TableComponent: React.FC<TableComponentProps> = ({
       },
     },
     {
-      title: "Akcije",
+      title: t("table.actions"),
       key: "actions",
       render: (_, record) => (
         <>
           <EditOutlined
-            title="Uredi"
+            title={t("button.edit")}
             style={{ marginRight: 16 }}
             onClick={() => handleEdit(record)}
           />
           <Popconfirm
-            title="Da li ste sigurni da želite izbrisati ovaj paket usluge?"
+            title={t("table.deleteConfirmServicePackage")}
             onConfirm={() => handleDelete(record.servicePackageId)}
-            okText="Da"
-            cancelText="Ne"
+            okText={t("button.confirm")}
+            cancelText={t("button.cancel")}
           >
-            <DeleteOutlined style={{ color: "red" }} title="Izbriši" />
+            <DeleteOutlined
+              style={{ color: "red" }}
+              title={t("button.delete")}
+            />
           </Popconfirm>
         </>
       ),
@@ -196,32 +195,35 @@ const TableComponent: React.FC<TableComponentProps> = ({
               loading={dataState.loading}
               handleEdit={() => handleEdit(x)}
               handleDelete={() => handleDelete(x.servicePackageId)}
-              deleteTitle="Da li ste sigurni da želite izbrisati ovaj paket usluge?"
+              deleteTitle={t("table.deleteConfirmServicePackage")}
               columns={[
-                { title: "ID paketa usluge", value: x.servicePackageId },
                 {
-                  title: "Naziv paketa usluge",
+                  title: t("table.servicePackageId"),
+                  value: x.servicePackageId,
+                },
+                {
+                  title: t("table.servicePackageName"),
                   value: x.servicePackageName
                     ? x.servicePackageName
-                    : "Nema podataka",
+                    : t("table.noDataCell"),
                 },
                 {
-                  title: "Broj termina",
-                  value: x.termNumber ? x.termNumber : "Nema podataka",
+                  title: t("table.termNumber"),
+                  value: x.termNumber ? x.termNumber : t("table.noDataCell"),
                 },
                 {
-                  title: "Trajanje paketa u danima",
+                  title: t("table.servicePackageDurationDays"),
                   value: x.servicePackageDurationDays
                     ? x.servicePackageDurationDays
-                    : "Nema podataka",
+                    : t("table.noDataCell"),
                 },
                 {
-                  title: "Cijena u KM",
-                  value: x.price ? x.price.toFixed(2) : "Nema podataka",
+                  title: t("table.price"),
+                  value: x.price ? x.price.toFixed(2) : t("table.noDataCell"),
                 },
                 {
-                  title: "Bilješka",
-                  value: x.note ? x.note : "Nema podataka",
+                  title: t("table.note"),
+                  value: x.note ? x.note : t("table.noDataCell"),
                   isPreviewable: x.note && x.note.length > 3 ? true : false,
                   onNoteClick: () => handleOpenInfoModal(x.note),
                 },
@@ -234,7 +236,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
             total={dataState.totalElements}
             onChange={nextPage}
             showSizeChanger={false}
-            locale={{ items_per_page: "po stranici" }}
+            locale={{ items_per_page: t("table.perPage") }}
             style={{ justifyContent: "center" }}
           />
         </>
@@ -246,7 +248,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
           dataSource={dataState.servicePackages}
           rowKey="servicePackageId"
           locale={{
-            emptyText: "Nema podataka za prikazati",
+            emptyText: t("table.emptyTable"),
           }}
           pagination={{
             current: dataState.cursor,

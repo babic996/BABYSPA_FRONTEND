@@ -1,18 +1,23 @@
+import { TFunction } from "i18next";
 import * as yup from "yup";
 
-export const getGiftCardValidationSchema = (isUpdate: boolean) => {
+export const getGiftCardValidationSchema = (
+  isUpdate: boolean,
+  t: TFunction
+) => {
   return yup.object().shape({
     giftCardId: yup
       .number()
       .nullable()
       .when([], {
         is: () => isUpdate,
-        then: (schema) => schema.required("ID poklon kartice je obavezan"),
+        then: (schema) =>
+          schema.required(t("giftCardValidation.giftCardIdRequired")),
         otherwise: (schema) => schema.nullable(),
       }),
     serialNumber: yup
       .string()
-      .required("Morate unijeti serijski broj poklon kartice")
+      .required(t("giftCardValidation.serialNumberRequired"))
       .trim(),
     expirationDate: yup.string().nullable().optional(),
     used: yup
@@ -20,8 +25,7 @@ export const getGiftCardValidationSchema = (isUpdate: boolean) => {
       .default(false)
       .when([], {
         is: () => isUpdate,
-        then: (schema) =>
-          schema.required("Obavezno popuniti da li je kartica iskorištena"),
+        then: (schema) => schema.required(t("giftCardValidation.usedRequired")),
         otherwise: (schema) => schema.default(false).notRequired(),
       }),
   });

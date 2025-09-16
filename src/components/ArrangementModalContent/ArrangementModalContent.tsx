@@ -24,6 +24,7 @@ import {
   getArrangements,
 } from "../../services/ArrangementService";
 import { useFilter } from "../../context/Filter/useFilter";
+import { TFunction } from "i18next";
 
 interface ArrangementModalContentProps {
   disableEditField: boolean;
@@ -39,6 +40,7 @@ interface ArrangementModalContentProps {
   errors: FieldErrors<CreateOrUpdateArrangementInterface>;
   dropdownData: DropDownDataInterface;
   isModalOpen: MutableRefObject<boolean>;
+  t: TFunction;
 }
 
 const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
@@ -55,6 +57,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
   setHidePaymentType,
   setValue,
   isModalOpen,
+  t,
 }) => {
   const { onResetFilter } = useFilter();
   const onSubmit: SubmitHandler<CreateOrUpdateArrangementInterface> = async (
@@ -68,7 +71,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
             dropdownData.status.find((x) => x.statusCode == "paid")?.statusId &&
           data.paymentTypeId == null
         ) {
-          toastErrorNotification("Morate izabrati tip plaćanja!");
+          toastErrorNotification(t("modal.paymentTypeRequiredMessage"));
         } else {
           const res = await editArrangement(data);
           const oldItem = dataState.arrangements.find(
@@ -86,7 +89,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
             totalSum: prev.totalSum - oldPrice + newPrice,
           }));
           isModalOpen.current = false;
-          toastSuccessNotification("Ažurirano!");
+          toastSuccessNotification(t("common.succesfullyEdited"));
           onResetFilter();
         }
       } else {
@@ -99,7 +102,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
           totalSum: dataState.totalSum + res.data.data.price,
         }));
         isModalOpen.current = false;
-        toastSuccessNotification("Sačuvano!");
+        toastSuccessNotification(t("common.succesfullyAdded"));
         onResetFilter();
       }
     } catch (e) {
@@ -112,7 +115,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
   return (
     <Form onFinish={handleSubmit(onSubmit)} layout="vertical">
       <Form.Item
-        label="Odaberi bebu"
+        label={t("modal.selectBaby")}
         validateStatus={errors.babyId ? "error" : ""}
         help={errors.babyId?.message}
         style={{ marginBottom: 8 }}
@@ -124,7 +127,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
             <Select
               {...field}
               disabled={disableEditField}
-              placeholder="Odaberi bebu"
+              placeholder={t("modal.selectBaby")}
               value={field.value == 0 ? null : field.value}
               showSearch
               optionFilterProp="children"
@@ -145,7 +148,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
       </Form.Item>
 
       <Form.Item
-        label="Odaberi paket usluge"
+        label={t("modal.selectServicePackage")}
         validateStatus={errors.servicePackageId ? "error" : ""}
         help={errors.servicePackageId?.message}
         style={{ marginBottom: 8 }}
@@ -156,7 +159,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
           render={({ field }) => (
             <Select
               {...field}
-              placeholder="Odaberi paket usluge"
+              placeholder={t("modal.selectServicePackage")}
               disabled={disableEditField}
               value={field.value == 0 ? null : field.value}
               showSearch
@@ -178,7 +181,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
       </Form.Item>
 
       <Form.Item
-        label="Odaberi popust"
+        label={t("modal.selectDiscount")}
         validateStatus={errors.discountId ? "error" : ""}
         help={errors.discountId?.message}
         style={{ marginBottom: 8 }}
@@ -189,7 +192,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
           render={({ field }) => (
             <Select
               {...field}
-              placeholder="Odaberi popust"
+              placeholder={t("modal.selectDiscount")}
               showSearch
               optionFilterProp="children"
               value={
@@ -221,7 +224,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
       {isEditArrangement && (
         <>
           <Form.Item
-            label="Odaberi status"
+            label={t("modal.selectStatus")}
             validateStatus={errors.statusId ? "error" : ""}
             help={errors.statusId?.message}
             style={{ marginBottom: 8 }}
@@ -232,7 +235,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
               render={({ field }) => (
                 <Select
                   {...field}
-                  placeholder="Odaberi status"
+                  placeholder={t("modal.selectStatus")}
                   value={field.value == 0 ? null : field.value}
                   onChange={(value) => {
                     field.onChange(value);
@@ -263,7 +266,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
 
           {!hidePaymentType && (
             <Form.Item
-              label="Odaberi tip plaćanja"
+              label={t("modal.selectPaymentType")}
               validateStatus={errors.paymentTypeId ? "error" : ""}
               help={errors.paymentTypeId?.message}
               style={{ marginBottom: 8 }}
@@ -274,7 +277,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
                 render={({ field }) => (
                   <Select
                     {...field}
-                    placeholder="Odaberi tip plaćanja"
+                    placeholder={t("modal.selectPaymentType")}
                     value={field.value == 0 ? null : field.value}
                     onChange={(value) => {
                       field.onChange(value);
@@ -305,7 +308,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
             (x) => x.paymentTypeId === selectedPaymentType
           )?.paymentTypeCode === "gift" && (
             <Form.Item
-              label="Odaberi poklon karticu"
+              label={t("modal.selectGiftCard")}
               validateStatus={errors.giftCardId ? "error" : ""}
               help={errors.giftCardId?.message}
               style={{ marginBottom: 8 }}
@@ -316,7 +319,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
                 render={({ field }) => (
                   <Select
                     {...field}
-                    placeholder="Odaberi poklon karticu"
+                    placeholder={t("modal.selectGiftCard")}
                     showSearch
                     allowClear
                     optionFilterProp="children"
@@ -339,7 +342,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
           )}
 
           <Form.Item
-            label="Povećaj broj dana"
+            label={t("modal.extendDurationDays")}
             validateStatus={errors.extendDurationDays ? "error" : ""}
             help={errors.extendDurationDays?.message}
             style={{ marginBottom: 8 }}
@@ -355,7 +358,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
         </>
       )}
       <Form.Item
-        label="Bilješka"
+        label={t("modal.note")}
         validateStatus={errors.note ? "error" : ""}
         help={errors.note?.message}
         style={{ marginBottom: 8 }}
@@ -385,7 +388,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
         wrapperCol={{ span: 24 }}
       >
         <Button type="primary" htmlType="submit">
-          Sačuvaj
+          {t("button.save")}
         </Button>
       </Form.Item>
     </Form>

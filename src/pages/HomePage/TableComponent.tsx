@@ -13,6 +13,7 @@ import dayjs, { Dayjs } from "dayjs";
 import InfoModal from "../../components/InfoModal/InfoModal";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { ColumnsType } from "antd/es/table";
+import { TFunction } from "i18next";
 
 interface TableComponentProps {
   isMobile: boolean;
@@ -20,6 +21,7 @@ interface TableComponentProps {
   handleDelete: (reservationId?: number | null) => void;
   nextPage: (page: number) => void;
   dataState: DataStateReservation;
+  t: TFunction;
 }
 
 const TableComponent: React.FC<TableComponentProps> = ({
@@ -28,6 +30,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
   handleDelete,
   dataState,
   nextPage,
+  t,
 }) => {
   const [currentNote, setCurrentNote] = useState<string>("");
   const isInfoModalVisible = useRef<boolean>(false);
@@ -48,42 +51,42 @@ const TableComponent: React.FC<TableComponentProps> = ({
 
   const columns: ColumnsType<TableReservationInterface> = [
     {
-      title: "ID rezervacije",
+      title: t("table.reservationId"),
       dataIndex: "reservationId",
       key: "reservationId",
     },
     {
-      title: "ID aranžmana",
+      title: t("table.arrangementId"),
       dataIndex: "arrangementId",
       key: "arrangementId",
     },
     {
-      title: "Podaci o bebi",
+      title: t("table.babyDetails"),
       dataIndex: "babyDetails",
       key: "babyDetails",
       render: (item) => {
-        return item ? item.value : "Nema podatka";
+        return item ? item.value : t("table.noDataCell");
       },
     },
     {
-      title: "Paket usluge",
+      title: t("table.servicePackage"),
       dataIndex: "servicePackageName",
       key: "servicePackageName",
     },
     {
-      title: "Broj preostalih termina aranžmana",
+      title: t("table.remainingTerm"),
       dataIndex: "remainingTerm",
       key: "remainingTerm",
     },
     {
-      title: "Termin",
+      title: t("table.term"),
       key: "reservationTime",
       render: (record) => {
         return formatReservationTerm(record.startDate, record.endDate);
       },
     },
     {
-      title: "Bilješka",
+      title: t("table.note"),
       dataIndex: "note",
       key: "note",
       render: (value) => {
@@ -101,7 +104,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
       },
     },
     {
-      title: "Status",
+      title: t("table.status"),
       dataIndex: "status",
       key: "status",
       render: (item) => {
@@ -109,26 +112,26 @@ const TableComponent: React.FC<TableComponentProps> = ({
       },
     },
     {
-      title: "Akcije",
+      title: t("table.actions"),
       key: "actions",
       render: (_, record) => (
         <>
           <EditOutlined
             style={{ marginRight: 12 }}
-            title="Uredi"
+            title={t("button.edit")}
             onClick={() => {
               handleEdit(record);
             }}
           />
           <Popconfirm
-            title="Da li ste sigurni da želite izbrisati ovu rezervaciju?"
+            title={t("modal.deleteConfirmReservation")}
             onConfirm={() => handleDelete(record.reservationId)}
-            okText="Da"
-            cancelText="Ne"
+            okText={t("button.confirm")}
+            cancelText={t("button.cancel")}
           >
             <DeleteOutlined
               style={{ color: "red", marginRight: 12 }}
-              title="Izbriši"
+              title={t("button.delete")}
             />
           </Popconfirm>
         </>
@@ -140,7 +143,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
 
   const formatReservationTerm = (startDate: string, endDate: string) => {
     if (!startDate || !endDate) {
-      return <span>Nepoznat termin</span>;
+      return <span>{t("modal.unknownTerm")}</span>;
     }
 
     const start = dayjs(startDate);
@@ -162,15 +165,15 @@ const TableComponent: React.FC<TableComponentProps> = ({
 
   const formatReservationStatus = (statusCode: string) => {
     return statusCode === "term_reserved" ? (
-      <Tag color="#16c9d3">Rezervisan termin</Tag>
+      <Tag color="#16c9d3">{t("common.reservedTerm")}</Tag>
     ) : statusCode === "term_canceled" ? (
-      <Tag color="#f40511">Otkazan termin</Tag>
+      <Tag color="#f40511">{t("common.canceledTerm")}</Tag>
     ) : statusCode === "term_not_used" ? (
-      <Tag color="#ff660d">Termin nije iskorišten</Tag>
+      <Tag color="#ff660d">{t("common.notUsedTerm")}</Tag>
     ) : statusCode === "term_used" ? (
-      <Tag color="#4caf50">Iskorišten termin</Tag>
+      <Tag color="#4caf50">{t("common.usedTerm")}</Tag>
     ) : (
-      "Nema podatka"
+      t("table.noDataCell")
     );
   };
 
@@ -195,34 +198,34 @@ const TableComponent: React.FC<TableComponentProps> = ({
               loading={dataState.loading}
               handleEdit={() => handleEdit(x)}
               handleDelete={() => handleDelete(x.reservationId)}
-              deleteTitle="Da li ste sigurni da želite izbrisati ovu rezervaciju?"
+              deleteTitle={t("modal.deleteConfirmReservation")}
               columns={[
-                { title: "ID rezervacije", value: x.reservationId },
-                { title: "ID aranžmana", value: x.arrangementId },
+                { title: t("table.reservationId"), value: x.reservationId },
+                { title: t("table.arrangementId"), value: x.arrangementId },
                 {
-                  title: "Podaci o bebi",
+                  title: t("table.babyDetails"),
                   value: x.babyDetails.value,
                 },
                 {
-                  title: "Paket usluge",
+                  title: t("table.servicePackage"),
                   value: x.servicePackageName,
                 },
                 {
-                  title: "Broj preostalih termina aranžmana",
+                  title: t("table.remainingTerm"),
                   value: x.remainingTerm,
                 },
                 {
-                  title: "Termin",
+                  title: t("table.term"),
                   value: formatReservationTerm(x.startDate, x.endDate),
                 },
                 {
-                  title: "Bilješka",
-                  value: x.note ? x.note : "Nema podataka",
+                  title: t("table.note"),
+                  value: x.note ? x.note : t("table.noDataCell"),
                   isPreviewable: x.note && x.note?.length > 3 ? true : false,
                   onNoteClick: () => handleOpenInfoModal(x.note),
                 },
                 {
-                  title: "Status",
+                  title: t("table.status"),
                   value: formatReservationStatus(x.status.statusCode),
                 },
               ]}
@@ -234,7 +237,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
             total={dataState.totalElements}
             onChange={nextPage}
             showSizeChanger={false}
-            locale={{ items_per_page: "po stranici" }}
+            locale={{ items_per_page: t("table.perPage") }}
             style={{ justifyContent: "center" }}
           />
         </>
@@ -246,7 +249,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
           dataSource={dataState.reservations}
           rowKey="reservationId"
           locale={{
-            emptyText: "Nema podataka za prikazati",
+            emptyText: t("table.emptyTable"),
           }}
           pagination={{
             current: dataState.cursor,
