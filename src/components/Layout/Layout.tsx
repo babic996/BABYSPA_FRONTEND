@@ -313,8 +313,16 @@ const Layout = () => {
           transition: "left 0.3s ease",
         }}
       >
-        <FloatButton description="EN" onClick={() => changeLanguage("en")} />
-        <FloatButton description="BHS" onClick={() => changeLanguage("bhs")} />
+        <FloatButton
+          description="EN"
+          shape="square"
+          onClick={() => changeLanguage("en")}
+        />
+        <FloatButton
+          description="BHS"
+          shape="square"
+          onClick={() => changeLanguage("bhs")}
+        />
       </FloatButton.Group>
     </>
   );

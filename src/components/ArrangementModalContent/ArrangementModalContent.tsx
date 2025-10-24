@@ -33,7 +33,7 @@ interface ArrangementModalContentProps {
   setHidePaymentType: React.Dispatch<React.SetStateAction<boolean>>;
   setDataState: React.Dispatch<React.SetStateAction<DataStateArrangement>>;
   dataState: DataStateArrangement;
-  selectedPaymentType: number | undefined | null;
+  selectedDiscount: number | undefined | null;
   setValue: UseFormSetValue<CreateOrUpdateArrangementInterface>;
   control: Control<CreateOrUpdateArrangementInterface>;
   handleSubmit: UseFormHandleSubmit<CreateOrUpdateArrangementInterface>;
@@ -47,7 +47,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
   control,
   disableEditField,
   dropdownData,
-  selectedPaymentType,
+  selectedDiscount,
   errors,
   handleSubmit,
   setDataState,
@@ -192,25 +192,18 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
           render={({ field }) => (
             <Select
               {...field}
-              placeholder={t("modal.selectDiscount")}
+              placeholder={t("modal.noDiscount")}
               showSearch
+              allowClear
               optionFilterProp="children"
-              value={
-                field.value == 0 ||
-                field.value == null ||
-                field.value == undefined
-                  ? 0
-                  : field.value
-              }
-              filterOption={(input, option) =>
-                (option?.children as string)
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
-              }
+              onChange={(value) => {
+                field.onChange(value);
+                console.log(value);
+                if (value === 0 || value === null || value === undefined) {
+                  setValue("giftCardId", null);
+                }
+              }}
             >
-              <Select.Option key={0} value={0}>
-                Bez popusta
-              </Select.Option>
               {dropdownData.discounts?.map((x) => (
                 <Select.Option key={x.discountId} value={x.discountId}>
                   {x.discountName}
@@ -248,7 +241,6 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
                     ) {
                       setHidePaymentType(true);
                       setValue("paymentTypeId", null);
-                      setValue("giftCardId", null);
                     } else {
                       setHidePaymentType(false);
                     }
@@ -281,13 +273,6 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
                     value={field.value == 0 ? null : field.value}
                     onChange={(value) => {
                       field.onChange(value);
-                      if (
-                        dropdownData.paymentTypes.find(
-                          (x) => x.paymentTypeId === value
-                        )?.paymentTypeCode === "cash"
-                      ) {
-                        setValue("giftCardId", null);
-                      }
                     }}
                   >
                     {dropdownData.paymentTypes?.map((x) => (
@@ -296,43 +281,6 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
                         value={x.paymentTypeId}
                       >
                         {x.paymentTypeName}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                )}
-              />
-            </Form.Item>
-          )}
-
-          {dropdownData.paymentTypes.find(
-            (x) => x.paymentTypeId === selectedPaymentType
-          )?.paymentTypeCode === "gift" && (
-            <Form.Item
-              label={t("modal.selectGiftCard")}
-              validateStatus={errors.giftCardId ? "error" : ""}
-              help={errors.giftCardId?.message}
-              style={{ marginBottom: 8 }}
-            >
-              <Controller
-                name="giftCardId"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    {...field}
-                    placeholder={t("modal.selectGiftCard")}
-                    showSearch
-                    allowClear
-                    optionFilterProp="children"
-                    filterOption={(input, option) =>
-                      (option?.children as string)
-                        .toLowerCase()
-                        .includes(input.toLowerCase())
-                    }
-                    value={field.value == 0 ? null : field.value}
-                  >
-                    {dropdownData.giftCards?.map((x) => (
-                      <Select.Option key={x.giftCardId} value={x.giftCardId}>
-                        {x.serialNumber}
                       </Select.Option>
                     ))}
                   </Select>
@@ -357,6 +305,41 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
           </Form.Item>
         </>
       )}
+      {selectedDiscount != null && selectedDiscount > 0 && (
+        <Form.Item
+          label={t("modal.selectGiftCard")}
+          validateStatus={errors.giftCardId ? "error" : ""}
+          help={errors.giftCardId?.message}
+          style={{ marginBottom: 8 }}
+        >
+          <Controller
+            name="giftCardId"
+            control={control}
+            render={({ field }) => (
+              <Select
+                {...field}
+                placeholder={t("modal.selectGiftCard")}
+                showSearch
+                allowClear
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  (option?.children as string)
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
+                }
+                value={field.value == 0 ? null : field.value}
+              >
+                {dropdownData.giftCards?.map((x) => (
+                  <Select.Option key={x.giftCardId} value={x.giftCardId}>
+                    {x.serialNumber}
+                  </Select.Option>
+                ))}
+              </Select>
+            )}
+          />
+        </Form.Item>
+      )}
+
       <Form.Item
         label={t("modal.note")}
         validateStatus={errors.note ? "error" : ""}

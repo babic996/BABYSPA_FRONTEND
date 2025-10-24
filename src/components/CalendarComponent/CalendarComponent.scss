@@ -2,6 +2,23 @@
   color: white;
   padding-inline: 5px;
   border-radius: 4px;
+  font-size: 12px;
+  min-height: 18px;
+  display: flex;
+  align-items: center;
+
+  @media (max-width: 768px) {
+    font-size: 10px;
+    padding-inline: 3px;
+    min-height: 16px;
+
+    .event-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 60px;
+    }
+  }
 }
 
 .custom-event.canceled {
@@ -26,4 +43,51 @@
 
 .rbc-event-label {
   color: black !important;
+}
+
+@media (max-width: 768px) {
+  .rbc-calendar {
+    font-size: 12px;
+  }
+
+  .rbc-header {
+    padding: 4px 2px !important;
+    font-size: 10px;
+  }
+
+  .rbc-date-cell {
+    padding: 2px !important;
+    text-align: center;
+
+    a {
+      font-size: 10px;
+      padding: 4px;
+    }
+  }
+
+  .rbc-month-view {
+    min-height: 500px;
+  }
+
+  .rbc-row-bg {
+    .rbc-day-bg {
+      min-height: 60px;
+    }
+  }
+
+  .rbc-event {
+    min-height: 16px;
+    margin: 1px 0;
+  }
+}
+
+@media (max-width: 1024px) and (min-width: 769px) {
+  .rbc-header {
+    padding: 6px 4px !important;
+    font-size: 11px;
+  }
+
+  .custom-event {
+    font-size: 11px;
+  }
 }

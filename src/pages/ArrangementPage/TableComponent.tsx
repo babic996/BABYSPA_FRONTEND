@@ -2,7 +2,7 @@ import React, { MutableRefObject, useRef, useState } from "react";
 import TableCard from "../../components/TableCard/TableCard";
 import { convertTableArrangementToCreateOrUpdateArrangement } from "../../mappers/ArrangementMapper";
 import dayjs from "dayjs";
-import { Pagination, Popconfirm, Popover, Table, Tag, Typography } from "antd";
+import { Pagination, Popconfirm, Table, Tag, Typography } from "antd";
 import { DEFAULT_PAGE_SIZE, handleApiError } from "../../util/const";
 import {
   EditOutlined,
@@ -212,23 +212,16 @@ const TableComponent: React.FC<TableComponentProps> = ({
       title: t("table.paymentType"),
       dataIndex: "paymentType",
       key: "paymentType",
-      render: (item, record) => {
-        const match = dropdownData.paymentTypes.find(
-          (x) => x.paymentTypeId === item?.id
-        );
-
-        if (match?.paymentTypeCode === "gift") {
-          return (
-            <Popover
-              content={record?.giftCard?.value}
-              title={t("table.giftCard")}
-            >
-              <span>{item.value}</span>
-            </Popover>
-          );
-        }
-
+      render: (item) => {
         return item ? item.value : t("common.notPaid");
+      },
+    },
+    {
+      title: t("table.giftCard"),
+      dataIndex: "giftCard",
+      key: "giftCard",
+      render: (item) => {
+        return item ? item.value : t("table.noDataCell");
       },
     },
     {

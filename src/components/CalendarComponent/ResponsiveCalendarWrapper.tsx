@@ -1,3 +1,4 @@
+import React from "react";
 import { Calendar, dayjsLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import {
@@ -15,12 +16,14 @@ import "./CalendarComponent.scss";
 import useMediaQuery from "../../hooks/useMediaQuery";
 import { TFunction } from "i18next";
 import i18n from "../../i18n";
+import MobileMonthCalendar from "./MobileMonthCalendar";
 
-interface CalendarComponentProps {
+interface ResponsiveCalendarWrapperProps {
   reservations?: OverviewReservationInterface[];
   onEventClick: (record: CreateOrUpdateReservationInterface) => void;
   t: TFunction;
 }
+
 interface CalendarEvent {
   title: string;
   start: Date;
@@ -29,7 +32,7 @@ interface CalendarEvent {
   id: number;
 }
 
-const CalendarComponent: React.FC<CalendarComponentProps> = ({
+const ResponsiveCalendarWrapper: React.FC<ResponsiveCalendarWrapperProps> = ({
   reservations,
   onEventClick,
   t,
@@ -39,6 +42,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     useState<OverviewReservationInterface | null>();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const currentLang = i18n.language;
+
   dayjs.locale(currentLang === "en" ? "en" : "bs");
   const localizer = dayjsLocalizer(dayjs);
 
@@ -58,6 +62,16 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     onEventClick(
       convertOverviewReservationInterfaceToCreateOrUpdateReservationInterface(
         event.reservation
+      )
+    );
+  };
+
+  const handleMobileEventClick = (
+    reservation: OverviewReservationInterface
+  ) => {
+    onEventClick(
+      convertOverviewReservationInterfaceToCreateOrUpdateReservationInterface(
+        reservation
       )
     );
   };
@@ -119,15 +133,29 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     );
   };
 
+  if (isMobile) {
+    return (
+      <div
+        style={{
+          backgroundColor: "#fff",
+        }}
+      >
+        <MobileMonthCalendar
+          reservations={reservations}
+          onEventClick={handleMobileEventClick}
+          t={t}
+          currentLang={currentLang}
+        />
+      </div>
+    );
+  }
+
   return (
     <>
       <Modal
         title={
           <div style={{ textAlign: "center" }}>
-            <Typography.Text
-              strong
-              style={{ fontSize: isMobile ? "16px" : "18px" }}
-            >
+            <Typography.Text strong style={{ fontSize: "18px" }}>
               {t("modal.information")}
             </Typography.Text>
           </div>
@@ -135,7 +163,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
         maskClosable={true}
         open={openInfoModal}
         onCancel={handleCancelInfoModal}
-        width={isMobile ? 320 : 500}
+        width={500}
         centered
         footer={null}
       >
@@ -167,18 +195,15 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
           renderItem={(item) => (
             <List.Item>
               <Space
-                direction={isMobile ? "vertical" : "horizontal"}
-                align={isMobile ? "start" : "center"}
+                direction="horizontal"
+                align="center"
                 style={{
                   width: "100%",
                   justifyContent: "space-between",
                   padding: "8px 0",
                 }}
               >
-                <Typography.Text
-                  type="secondary"
-                  style={{ minWidth: isMobile ? "100%" : "120px" }}
-                >
+                <Typography.Text type="secondary" style={{ minWidth: "120px" }}>
                   {item.label}:
                 </Typography.Text>
                 {item.isStatus ? (
@@ -198,7 +223,7 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
                 ) : (
                   <Typography.Text
                     strong
-                    style={{ textAlign: isMobile ? "start" : "right", flex: 1 }}
+                    style={{ textAlign: "right", flex: 1 }}
                   >
                     {item.value || "0"}
                   </Typography.Text>
@@ -227,4 +252,4 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
   );
 };
 
-export default CalendarComponent;
+export default ResponsiveCalendarWrapper;

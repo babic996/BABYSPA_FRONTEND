@@ -1,0 +1,203 @@
+.mobile-month-calendar {
+  padding: 12px;
+  background-color: #fff;
+  height: auto;
+  overflow: hidden;
+
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 8px 0;
+
+    .nav-button {
+      background: none;
+      border: none;
+      font-size: 20px;
+      padding: 6px 10px;
+      cursor: pointer;
+      color: #1890ff;
+      border-radius: 8px;
+      transition: background-color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:active {
+        background-color: #f0f0f0;
+        transform: scale(0.95);
+      }
+    }
+
+    .month-title {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+
+      h4 {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 600;
+        color: #262626;
+      }
+
+      .today-button {
+        background: none;
+        border: 1px solid #1890ff;
+        color: #1890ff;
+        padding: 4px 14px;
+        border-radius: 16px;
+        font-size: 11px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+
+        &:active {
+          background-color: #e6f7ff;
+          transform: scale(0.95);
+        }
+      }
+    }
+  }
+
+  .weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #f0f0f0;
+
+    .weekday {
+      text-align: center;
+      font-weight: 600;
+      color: #8c8c8c;
+      font-size: 11px;
+      padding: 6px 0;
+    }
+  }
+
+  .days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+
+    .day {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 2px;
+      border-radius: 8px;
+      position: relative;
+      background-color: #fafafa;
+      transition: all 0.2s;
+      min-width: 0;
+
+      &.empty {
+        background-color: transparent;
+      }
+
+      &.other-month {
+        opacity: 0.3;
+      }
+
+      &.today {
+        background-color: #e6f7ff;
+        border: 2px solid #1890ff;
+
+        .day-number {
+          color: #1890ff;
+          font-weight: bold;
+        }
+      }
+
+      &.has-events {
+        cursor: pointer;
+        background-color: #f0f5ff;
+        font-weight: 500;
+
+        &:active {
+          transform: scale(0.92);
+          background-color: #d6e4ff;
+        }
+      }
+
+      .day-number {
+        font-size: 14px;
+        margin-bottom: 2px;
+        color: #262626;
+      }
+
+      .event-markers {
+        display: flex;
+        gap: 2px;
+        align-items: center;
+        justify-content: center;
+        min-height: 6px;
+
+        .marker {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .marker-more {
+          font-size: 9px;
+          color: #595959;
+          font-weight: 600;
+          margin-left: 1px;
+        }
+      }
+    }
+  }
+}
+
+// Optimizacija za vrlo male ekrane
+@media (max-width: 375px) {
+  .mobile-month-calendar {
+    padding: 8px;
+
+    .calendar-header {
+      margin-bottom: 12px;
+
+      .month-title h4 {
+        font-size: 15px;
+      }
+
+      .nav-button {
+        font-size: 18px;
+        padding: 5px 8px;
+      }
+    }
+
+    .days-grid {
+      gap: 3px;
+
+      .day {
+        padding: 3px 1px;
+
+        .day-number {
+          font-size: 13px;
+        }
+
+        .event-markers .marker {
+          width: 4px;
+          height: 4px;
+        }
+      }
+    }
+  }
+}
+
+// Optimizacija za landscape mod
+@media (max-width: 768px) and (orientation: landscape) {
+  .mobile-month-calendar {
+    .days-grid .day {
+      aspect-ratio: 1.2;
+    }
+  }
+}

@@ -5,17 +5,16 @@ import { baseRequest } from "../util/useAxios";
 
 export const getGiftCardList = async (
   isUsed: boolean | null,
-  arrangementId: number | null
+  arrangementId: number | null | undefined
 ) => {
   const request = baseRequest();
-
   const queryParams = new URLSearchParams();
 
   if (isUsed !== null) {
     queryParams.append("isUsed", String(isUsed));
   }
 
-  if (arrangementId !== null) {
+  if (arrangementId !== null && arrangementId !== undefined) {
     queryParams.append("arrangementId", String(arrangementId));
   }
 

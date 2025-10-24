@@ -77,14 +77,14 @@ const ArrangementPage = () => {
     resolver: yupResolver(schema),
   });
 
-  const selectedPaymentType = useWatch({
-    control,
-    name: "paymentTypeId",
-  });
-
   const selectedArrangementId = useWatch({
     control,
     name: "arrangementId",
+  });
+
+  const selectedDiscountId = useWatch({
+    control,
+    name: "discountId",
   });
 
   //------------------LIFECYCLE------------------
@@ -122,7 +122,6 @@ const ArrangementPage = () => {
 
   useEffect(() => {
     const fetchGiftCards = async () => {
-      if (!selectedArrangementId) return;
       try {
         const res = await getGiftCardList(false, selectedArrangementId);
         setDropdownData((prev) => ({
@@ -137,7 +136,7 @@ const ArrangementPage = () => {
     };
 
     fetchGiftCards();
-  }, [selectedArrangementId, isEditArrangement]);
+  }, [selectedArrangementId]);
 
   useUpdateEffect(() => {
     const abortController = new AbortController();
@@ -227,9 +226,9 @@ const ArrangementPage = () => {
           hidePaymentType={hidePaymentType}
           isEditArrangement={isEditArrangement}
           isModalOpen={isModalOpen}
-          selectedPaymentType={selectedPaymentType}
           setDataState={setDataState}
           setHidePaymentType={setHidePaymentType}
+          selectedDiscount={selectedDiscountId}
           setValue={setValue}
           t={t}
         />

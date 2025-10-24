@@ -15,7 +15,6 @@ import {
 } from "antd";
 import { DatePicker as DatePickerMobile } from "antd-mobile";
 import "./HomePage.scss";
-import CalendarComponent from "../../components/CalendarComponent/CalendarComponent";
 import { useEffect, useRef, useState } from "react";
 import {
   CreateOrUpdateReservationInterface,
@@ -52,6 +51,7 @@ import { useFilter } from "../../context/Filter/useFilter";
 import { FaInfoCircle } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
+import ResponsiveCalendarWrapper from "../../components/CalendarComponent/ResponsiveCalendarWrapper";
 
 const HomePage = () => {
   const isModalOpen = useRef<boolean>(false);
@@ -610,7 +610,7 @@ const HomePage = () => {
                 />
               )}
               {!isTableView && (
-                <CalendarComponent
+                <ResponsiveCalendarWrapper
                   reservations={reservations}
                   onEventClick={handleEdit}
                   t={t}
