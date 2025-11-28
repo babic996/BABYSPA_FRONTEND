@@ -385,7 +385,7 @@ const TableComponent: React.FC<TableComponentProps> = ({
                     }
                     return x.paymentType
                       ? x.paymentType.value
-                      : t("table.notPaid");
+                      : t("common.notPaid");
                   })(),
                 },
                 {

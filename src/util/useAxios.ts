@@ -10,6 +10,5 @@ export const baseRequest = () => {
   } else {
     delete req.defaults.headers.common["Authorization"];
   }
-
   return req;
 };

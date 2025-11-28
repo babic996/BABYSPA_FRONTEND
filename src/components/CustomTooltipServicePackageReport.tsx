@@ -21,8 +21,8 @@ const CustomTooltipServicePackageReport = ({
     const data = payload[0].payload;
     return (
       <div className="custom-tooltip">
-        <p style={{ color: "#fff" }}>{`${t("common.date")}: ${data.date}`}</p>
-        <p style={{ color: "#fff" }}>{`${t(
+        <p style={{ color: "#000" }}>{`${t("common.date")}: ${data.date}`}</p>
+        <p style={{ color: "#000" }}>{`${t(
           "common.numberOfServicePackages"
         )}: ${data.numberOfUsedPackages}`}</p>
       </div>
