@@ -157,6 +157,9 @@
     "priceFrom": "Cijena od",
     "priceTo": "Cijena do",
     "searching": "Pretraži",
+    "selectDate": "Odaberite datum",
+    "startDate": "Početni datum",
+    "endDate": "Krajnji datum",
     "months": [
       "Januar",
       "Februar",

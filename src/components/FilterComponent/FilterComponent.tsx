@@ -194,6 +194,8 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
           <DatePicker
             status="warning"
             style={{ width: "100%" }}
+            placeholder={t("common.selectDate")}
+            format={["DD.MM.YYYY.", "D.M.YYYY."]}
             value={filter.date ? dayjs(filter.date) : null}
           />
         </Col>
@@ -206,6 +208,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
               format={
                 showTimeInRangePicker ? "DD.MM.YYYY. HH:mm" : "DD.MM.YYYY."
               }
+              placeholder={[t("common.startDate"), t("common.endDate")]}
               status="warning"
               value={
                 filter.startRangeDate && filter.endRangeDate

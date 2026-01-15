@@ -1,19 +1,4 @@
-import {
-  Button,
-  DatePicker,
-  Form,
-  Input,
-  InputNumber,
-  Modal,
-  Select,
-  Popconfirm,
-  Row,
-  Col,
-  Tag,
-  Space,
-  Popover,
-} from "antd";
-import { DatePicker as DatePickerMobile } from "antd-mobile";
+import { Button, Modal, Row, Col, Tag, Space, Popover } from "antd";
 import "./HomePage.scss";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -22,7 +7,7 @@ import {
   OverviewReservationInterface,
   TableReservationInterface,
 } from "../../interfaces/ReservationInterface";
-import { useForm, Controller, SubmitHandler } from "react-hook-form";
+import { useForm, SubmitHandler, useWatch } from "react-hook-form";
 import { getStatusList } from "../../services/StatusService";
 import {
   addReservation,
@@ -38,7 +23,6 @@ import {
   toastErrorNotification,
   toastSuccessNotification,
 } from "../../util/toastNotification";
-import dayjs from "dayjs";
 import FullPageSpiner from "../../components/FullPageSpiner/FullPageSpiner";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { getReservationSchema } from "../../validations/ReservationValidationSchema";
@@ -52,9 +36,26 @@ import { FaInfoCircle } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import i18n from "../../i18n";
 import ResponsiveCalendarWrapper from "../../components/CalendarComponent/ResponsiveCalendarWrapper";
+import { BabyInterface, DataStateBaby } from "../../interfaces/BabyInterface";
+import {
+  CreateOrUpdateArrangementInterface,
+  DataStateArrangement,
+  DropDownDataInterface,
+} from "../../interfaces/ArrangementInterface";
+import { getBabyValidationSchema } from "../../validations/BabyValidationSchema";
+import { getArrangementValidationSchema } from "../../validations/ArrangementValidationSchema";
+import BabyModalContent from "../../components/BabyModalContent/BabyModalContent";
+import ArrangementModalContent from "../../components/ArrangementModalContent/ArrangementModalContent";
+import { getBabiesList } from "../../services/BabyService";
+import { getServicePackagesList } from "../../services/ServicePackageService";
+import { getDiscountList } from "../../services/DiscountService";
+import { getPaymentTypeList } from "../../services/PaymentTypeService";
+import ReservationModalContent from "../../components/ReservationModalContent/ReservationModalContent";
 
 const HomePage = () => {
   const isModalOpen = useRef<boolean>(false);
+  const isBabyModalOpen = useRef<boolean>(false);
+  const isArrangementModalOpen = useRef<boolean>(false);
   const { t } = useTranslation();
   const [isEditReservation, setIsEditReservation] = useState<boolean>(false);
   const [status, setStatus] = useState<StatusInterface[]>([]);
@@ -76,6 +77,36 @@ const HomePage = () => {
   const [isTableView, setIsTableView] = useState<boolean>(false);
   const { filter, onResetFilter } = useFilter();
   const months = i18n.t("common.months", { returnObjects: true }) as string[];
+  const [isBabyModalVisible, setIsBabyModalVisible] = useState<boolean>(false);
+  const [isArrangementModalVisible, setIsArrangementModalVisible] =
+    useState<boolean>(false);
+  const [babyDataState, setBabyDataState] = useState<DataStateBaby>({
+    cursor: 1,
+    babies: [],
+    totalElements: undefined,
+    loading: false,
+  });
+  const [isEditBabyInline, setIsEditBabyInline] = useState<boolean>(false);
+  const [arrangementDataState, setArrangementDataState] =
+    useState<DataStateArrangement>({
+      cursor: 1,
+      arrangements: [],
+      totalElements: undefined,
+      totalSum: 0,
+      loading: false,
+    });
+  const [dropdownData, setDropdownData] = useState<DropDownDataInterface>({
+    babies: [],
+    servicePackages: [],
+    discounts: [],
+    giftCards: [],
+    status: [],
+    paymentTypes: [],
+  });
+  const [isEditArrangementInline, setIsEditArrangementInline] =
+    useState<boolean>(false);
+  const [hidePaymentTypeInline, setHidePaymentTypeInline] =
+    useState<boolean>(false);
 
   const {
     control,
@@ -83,8 +114,39 @@ const HomePage = () => {
     reset,
     getValues,
     formState: { errors },
+    setValue,
   } = useForm<CreateOrUpdateReservationInterface>({
     resolver: yupResolver(reservationSchema),
+  });
+
+  const {
+    control: babyControl,
+    handleSubmit: handleSubmitBaby,
+    reset: resetBaby,
+    formState: { errors: babyErrors },
+  } = useForm<BabyInterface>({
+    resolver: yupResolver(getBabyValidationSchema(isEditBabyInline, t)),
+  });
+
+  const arrangementSchema = getArrangementValidationSchema(
+    isEditArrangementInline,
+    dropdownData.paymentTypes,
+    t
+  );
+
+  const {
+    control: arrangementControl,
+    handleSubmit: handleSubmitArrangement,
+    reset: resetArrangement,
+    setValue: setArrangementValue,
+    formState: { errors: arrangementErrors },
+  } = useForm<CreateOrUpdateArrangementInterface>({
+    resolver: yupResolver(arrangementSchema),
+  });
+
+  const selectedDiscountId = useWatch({
+    control: arrangementControl,
+    name: "discountId",
   });
 
   //------------------LIFECYCLE----------------
@@ -107,6 +169,34 @@ const HomePage = () => {
     };
 
     fetchInitialData();
+  }, []);
+
+  useEffect(() => {
+    const fetchDropdownData = async () => {
+      try {
+        const [servicePackages, babies, status, discounts, paymentTypes] =
+          await Promise.all([
+            getServicePackagesList(),
+            getBabiesList(),
+            getStatusList("arrangement"),
+            getDiscountList(),
+            getPaymentTypeList(),
+          ]);
+
+        setDropdownData((prev) => ({
+          ...prev,
+          servicePackages,
+          babies,
+          discounts,
+          status,
+          paymentTypes,
+        }));
+      } catch (e) {
+        toastErrorNotification(handleApiError(e));
+      }
+    };
+
+    fetchDropdownData();
   }, []);
 
   useUpdateEffect(() => {
@@ -238,6 +328,67 @@ const HomePage = () => {
     isModalOpen.current = true;
   };
 
+  const handleOpenBabyModalInline = () => {
+    resetBaby({
+      babyId: null,
+      babyName: "",
+      babySurname: "",
+      birthDate: null,
+      numberOfMonths: 0,
+      phoneNumber: "",
+      motherName: "",
+      note: "",
+    });
+    setIsEditBabyInline(false);
+    isBabyModalOpen.current = true;
+    setIsBabyModalVisible(true);
+  };
+
+  const handleOpenArrangementModalInline = () => {
+    resetArrangement({
+      arrangementId: null,
+      note: "",
+      discountId: null,
+      giftCardId: null,
+      babyId: 0,
+      statusId: null,
+      servicePackageId: 0,
+      paymentTypeId: null,
+      extendDurationDays: null,
+    });
+    setIsEditArrangementInline(false);
+    setHidePaymentTypeInline(false);
+    isArrangementModalOpen.current = true;
+    setIsArrangementModalVisible(true);
+  };
+
+  const handleBabyCreatedInline = async (babyId: number) => {
+    try {
+      const babies = await getBabiesList();
+      setDropdownData((prev) => ({
+        ...prev,
+        babies,
+      }));
+      setArrangementValue("babyId", babyId);
+      isBabyModalOpen.current = false;
+      setIsBabyModalVisible(false);
+    } catch (e) {
+      toastErrorNotification(handleApiError(e));
+    }
+  };
+
+  const handleArrangementCreatedInline = async (arrangementId: number) => {
+    try {
+      const arrangementsRes = await getArrangementsList();
+      setArrangements(arrangementsRes);
+      setValue("arrangementId", arrangementId);
+      isArrangementModalOpen.current = false;
+      setIsArrangementModalVisible(false);
+    } catch (e) {
+      toastErrorNotification(handleApiError(e));
+    }
+  };
+
   const nextPage = (page: number) => {
     setDataState((prev) => ({ ...prev, cursor: page, loading: true }));
   };
@@ -310,232 +461,85 @@ const HomePage = () => {
 
   return (
     <>
+      <ReservationModalContent
+        isOpen={isModalOpen.current}
+        isEditReservation={isEditReservation}
+        control={control}
+        errors={errors}
+        handleSubmit={handleSubmit}
+        onSubmit={onSubmit}
+        status={status}
+        arrangements={arrangements}
+        isMobile={isMobile}
+        visible={visible}
+        setVisible={setVisible}
+        months={months}
+        t={t}
+        onCancel={handleModalCancel}
+        onDelete={handleDelete}
+        getValues={getValues}
+        onOpenArrangementModalInline={handleOpenArrangementModalInline}
+      />
       <Modal
         title={
-          <div style={{ textAlign: "center" }}>
-            {isEditReservation
-              ? t("modal.editReservation")
-              : t("modal.createReservation")}
-          </div>
+          <div style={{ textAlign: "center" }}>{t("modal.createBaby")}</div>
         }
         maskClosable={false}
-        open={isModalOpen.current}
+        open={isBabyModalVisible}
         footer={null}
-        onCancel={handleModalCancel}
+        onCancel={() => {
+          isBabyModalOpen.current = false;
+          setIsBabyModalVisible(false);
+        }}
         width={isMobile ? 300 : 600}
         centered
       >
-        <Form onFinish={handleSubmit(onSubmit)} layout="vertical">
-          {!isEditReservation && (
-            <Form.Item
-              label={t("modal.selectArrangement")}
-              validateStatus={errors.arrangementId ? "error" : ""}
-              help={errors.arrangementId?.message}
-              style={{ marginBottom: 8 }}
-            >
-              <Controller
-                name="arrangementId"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    {...field}
-                    placeholder={t("modal.selectArrangement")}
-                    showSearch
-                    optionFilterProp="children"
-                    filterOption={(input, option) =>
-                      (option?.children as string)
-                        .toLowerCase()
-                        .includes(input.toLowerCase())
-                    }
-                  >
-                    {arrangements?.map((x) => (
-                      <Select.Option key={x.id} value={x.id}>
-                        {x.value}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                )}
-              />
-            </Form.Item>
-          )}
-          {!isEditReservation &&
-            (isMobile ? (
-              <Form.Item
-                label={t("modal.reservationDateTime")}
-                validateStatus={errors.startDate ? "error" : ""}
-                help={errors.startDate?.message}
-                style={{ marginBottom: 8 }}
-              >
-                <Controller
-                  name="startDate"
-                  control={control}
-                  render={({ field: { onChange, value } }) => (
-                    <>
-                      <Button
-                        onClick={() => setVisible(true)}
-                        style={{ width: "100%" }}
-                      >
-                        {value
-                          ? dayjs(value).format("DD.MM.YYYY HH:mm")
-                          : t("common.chooseDateAndTime")}
-                      </Button>
-                      <DatePickerMobile
-                        visible={visible}
-                        onClose={() => setVisible(false)}
-                        onConfirm={(date) => {
-                          onChange(
-                            date
-                              ? dayjs(date).format("YYYY-MM-DDTHH:mm:ss")
-                              : ""
-                          );
-                          setVisible(false);
-                        }}
-                        precision="minute"
-                        renderLabel={(type, data) => {
-                          if (type === "month") {
-                            return months[data - 1];
-                          }
-                          return data;
-                        }}
-                      />
-                    </>
-                  )}
-                />
-              </Form.Item>
-            ) : (
-              <Form.Item
-                label={t("modal.reservationDateTime")}
-                validateStatus={errors.startDate ? "error" : ""}
-                help={errors.startDate?.message}
-                style={{ marginBottom: 8 }}
-              >
-                <Controller
-                  name="startDate"
-                  control={control}
-                  render={({ field: { onChange, value } }) => (
-                    <DatePicker
-                      showTime
-                      format="DD-MM-YYYY HH:mm"
-                      value={value ? dayjs(value, "YYYY-MM-DD HH:mm:ss") : null}
-                      onChange={(date) =>
-                        onChange(
-                          date ? dayjs(date).format("YYYY-MM-DDTHH:mm:ss") : ""
-                        )
-                      }
-                      style={{ width: "100%" }}
-                    />
-                  )}
-                />
-              </Form.Item>
-            ))}
-          {!isEditReservation && (
-            <Form.Item
-              label={t("modal.reservationDuration")}
-              validateStatus={errors.durationReservation ? "error" : ""}
-              help={errors.durationReservation?.message}
-              style={{ marginBottom: 8 }}
-            >
-              <Controller
-                name="durationReservation"
-                control={control}
-                render={({ field }) => (
-                  <InputNumber {...field} min={0} style={{ width: "100%" }} />
-                )}
-              />
-            </Form.Item>
-          )}
-
-          {isEditReservation && (
-            <Form.Item
-              label={t("modal.selectStatus")}
-              validateStatus={errors.statusId ? "error" : ""}
-              help={errors.statusId?.message}
-              style={{ marginBottom: 8 }}
-            >
-              <Controller
-                name="statusId"
-                control={control}
-                render={({ field }) => (
-                  <Select {...field} placeholder={t("modal.selectStatus")}>
-                    {status?.map((x) => (
-                      <Select.Option
-                        key={x.statusId}
-                        value={x.statusId}
-                        style={
-                          status?.find((x) => x.statusCode === "term_canceled")
-                            ?.statusId == x.statusId
-                            ? { color: "red" }
-                            : {}
-                        }
-                      >
-                        {x.statusCode === "term_reserved"
-                          ? t("common.reservedTerm")
-                          : x.statusCode === "term_canceled"
-                          ? t("common.canceledTerm")
-                          : x.statusCode === "term_not_used"
-                          ? t("common.notUsedTerm")
-                          : x.statusCode === "term_used"
-                          ? t("common.usedTerm")
-                          : ""}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                )}
-              />
-            </Form.Item>
-          )}
-          <Form.Item
-            label={t("modal.note")}
-            validateStatus={errors.note ? "error" : ""}
-            help={errors.note?.message}
-            style={{ marginBottom: 8 }}
-          >
-            <Controller
-              name="note"
-              control={control}
-              render={({ field }) => (
-                <Input.TextArea
-                  {...field}
-                  value={field.value ?? ""}
-                  autoSize={{ minRows: 0, maxRows: 6 }}
-                  onKeyDown={(e) => {
-                    if (e.key == "Enter") {
-                      e.preventDefault();
-                      const newValue = `${field.value ?? ""}\n`;
-                      field.onChange(newValue);
-                    }
-                  }}
-                />
-              )}
-            />
-          </Form.Item>
-
-          <Form.Item
-            style={{ textAlign: "center", marginBottom: 8 }}
-            wrapperCol={{ span: 24 }}
-          >
-            <Button.Group>
-              <Button type="primary" htmlType="submit">
-                {t("button.save")}
-              </Button>
-              {isEditReservation && (
-                <>
-                  <Popconfirm
-                    title={t("modal.deleteConfirmReservationTitle")}
-                    description={t("modal.deleteConfirmReservation")}
-                    okText={t("button.confirm")}
-                    cancelText={t("button.cancel")}
-                    onConfirm={() => handleDelete(getValues("reservationId"))}
-                  >
-                    <Button type="default" danger>
-                      {t("button.delete")}
-                    </Button>
-                  </Popconfirm>
-                </>
-              )}
-            </Button.Group>
-          </Form.Item>
-        </Form>
+        <BabyModalContent
+          control={babyControl}
+          dataState={babyDataState}
+          errors={babyErrors}
+          handleSubmit={handleSubmitBaby}
+          isEditBaby={isEditBabyInline}
+          isModalOpen={isBabyModalOpen}
+          setDataState={setBabyDataState}
+          t={t}
+          onSuccess={handleBabyCreatedInline}
+        />
+      </Modal>
+      <Modal
+        title={
+          <div style={{ textAlign: "center" }}>
+            {t("modal.createArrangement")}
+          </div>
+        }
+        maskClosable={false}
+        open={isArrangementModalVisible}
+        footer={null}
+        onCancel={() => {
+          isArrangementModalOpen.current = false;
+          setIsArrangementModalVisible(false);
+        }}
+        width={isMobile ? 300 : 600}
+        centered
+      >
+        <ArrangementModalContent
+          control={arrangementControl}
+          dataState={arrangementDataState}
+          disableEditField={false}
+          dropdownData={dropdownData}
+          errors={arrangementErrors}
+          handleSubmit={handleSubmitArrangement}
+          hidePaymentType={hidePaymentTypeInline}
+          isEditArrangement={isEditArrangementInline}
+          isModalOpen={isArrangementModalOpen}
+          selectedDiscount={selectedDiscountId}
+          setDataState={setArrangementDataState}
+          setHidePaymentType={setHidePaymentTypeInline}
+          setValue={setArrangementValue}
+          t={t}
+          onSuccess={handleArrangementCreatedInline}
+          onAddBabyClick={handleOpenBabyModalInline}
+        />
       </Modal>
       <div className="container">
         {loading && <FullPageSpiner />}

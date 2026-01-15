@@ -1,4 +1,4 @@
-import { Button, Form, Input, InputNumber, Select } from "antd";
+import { Button, Form, Input, InputNumber, Select, Divider } from "antd";
 import {
   Control,
   Controller,
@@ -41,6 +41,8 @@ interface ArrangementModalContentProps {
   dropdownData: DropDownDataInterface;
   isModalOpen: MutableRefObject<boolean>;
   t: TFunction;
+  onSuccess?: (arrangementId: number) => void;
+  onAddBabyClick?: () => void;
 }
 
 const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
@@ -58,6 +60,8 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
   setValue,
   isModalOpen,
   t,
+  onSuccess,
+  onAddBabyClick,
 }) => {
   const { onResetFilter } = useFilter();
   const onSubmit: SubmitHandler<CreateOrUpdateArrangementInterface> = async (
@@ -103,6 +107,9 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
         }));
         isModalOpen.current = false;
         toastSuccessNotification(t("common.succesfullyAdded"));
+        if (res?.data?.data?.arrangementId && onSuccess) {
+          onSuccess(res.data.data.arrangementId);
+        }
         onResetFilter();
       }
     } catch (e) {
@@ -135,6 +142,19 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
                 (option?.children as string)
                   .toLowerCase()
                   .includes(input.toLowerCase())
+              }
+              dropdownRender={(menu) =>
+                onAddBabyClick ? (
+                  <>
+                    {menu}
+                    <Divider style={{ margin: "8px 0" }} />
+                    <Button type="link" onClick={onAddBabyClick}>
+                      {t("button.addBaby")}
+                    </Button>
+                  </>
+                ) : (
+                  menu
+                )
               }
             >
               {dropdownData.babies?.map((x) => (

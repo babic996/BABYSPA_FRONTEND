@@ -26,6 +26,7 @@ interface BabyModalContentProps {
   handleSubmit: UseFormHandleSubmit<BabyInterface>;
   errors: FieldErrors<BabyInterface>;
   isModalOpen: MutableRefObject<boolean>;
+  onSuccess?: (babyId: number) => void;
   t: TFunction;
 }
 
@@ -36,6 +37,7 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
   handleSubmit,
   isEditBaby,
   isModalOpen,
+  onSuccess,
   setDataState,
   t,
 }) => {
@@ -55,7 +57,7 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
         toastSuccessNotification(t("common.succesfullyEdited"));
         onResetFilter();
       } else {
-        await addBaby(data);
+        const res = await addBaby(data);
         const result = await getBabies(dataState.cursor - 1, null);
         setDataState((prev) => ({
           ...prev,
@@ -64,6 +66,9 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
         }));
         isModalOpen.current = false;
         toastSuccessNotification(t("common.succesfullyAdded"));
+        if (res?.data?.data?.babyId && onSuccess) {
+          onSuccess(res.data.data.babyId);
+        }
         onResetFilter();
       }
     } catch (e) {
@@ -111,6 +116,8 @@ const BabyModalContent: React.FC<BabyModalContentProps> = ({
           control={control}
           render={({ field: { onChange, value } }) => (
             <DatePicker
+              placeholder={t("common.selectDate")}
+              format={["DD.MM.YYYY", "D.M.YYYY", "D.M.YY"]}
               value={value ? dayjs(value, "YYYY-MM-DD") : null}
               onChange={(date) =>
                 onChange(date ? dayjs(date).format("YYYY-MM-DDTHH:mm:ss") : "")

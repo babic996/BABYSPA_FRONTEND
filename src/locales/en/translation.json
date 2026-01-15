@@ -157,6 +157,9 @@
     "priceFrom": "Price from",
     "priceTo": "Price to",
     "searching": "Searching",
+    "selectDate": "Select date",
+    "startDate": "Start date",
+    "endDate": "End date",
     "months": [
       "January",
       "February",

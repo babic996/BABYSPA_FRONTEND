@@ -260,7 +260,7 @@ const Layout = () => {
             style={{ paddingTop: 15, paddingBottom: 15, textAlign: "center" }}
           >
             <img
-              src="/logo.jpg"
+              src="/happiest-baby-logo-png_seeklogo-508671.png"
               alt="Logo"
               style={{
                 width: collapsed || isMobile ? "20px" : "100px",
@@ -268,7 +268,7 @@ const Layout = () => {
               }}
             />
             {!collapsed && !isMobile && (
-              <h1 style={{ color: "white" }}>Baby spa Sunshine</h1>
+              <h1 style={{ color: "white" }}>Baby spa</h1>
             )}
           </div>
           <Menu
