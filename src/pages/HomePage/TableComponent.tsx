@@ -14,6 +14,7 @@ import InfoModal from "../../components/InfoModal/InfoModal";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { ColumnsType } from "antd/es/table";
 import { TFunction } from "i18next";
+import { convertTableReservationInterfaceToCreateOrUpdateReservationInterface } from "../../mappers/ReservationMapper";
 
 interface TableComponentProps {
   isMobile: boolean;
@@ -120,7 +121,11 @@ const TableComponent: React.FC<TableComponentProps> = ({
             style={{ marginRight: 12 }}
             title={t("button.edit")}
             onClick={() => {
-              handleEdit(record);
+              handleEdit(
+                convertTableReservationInterfaceToCreateOrUpdateReservationInterface(
+                  record
+                )
+              );
             }}
           />
           <Popconfirm

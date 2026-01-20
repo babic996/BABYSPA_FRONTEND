@@ -354,7 +354,13 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
           >
             {statuses?.map((x) => (
               <Select.Option key={x.statusId} value={x.statusId}>
-                {x.statusCode === "term_reserved"
+                {x.statusCode === "paid"
+                  ? t("common.paid")
+                  : x.statusCode === "not_paid"
+                  ? t("common.notPaid")
+                  : x.statusCode === "created"
+                  ? t("common.created")
+                  : x.statusCode === "term_reserved"
                   ? t("common.reservedTerm")
                   : x.statusCode === "term_canceled"
                   ? t("common.canceledTerm")
@@ -362,7 +368,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
                   ? t("common.notUsedTerm")
                   : x.statusCode === "term_used"
                   ? t("common.usedTerm")
-                  : ""}
+                  : null}
               </Select.Option>
             ))}
           </Select>

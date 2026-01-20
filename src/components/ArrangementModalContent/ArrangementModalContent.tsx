@@ -268,7 +268,13 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
                 >
                   {dropdownData.status?.map((x) => (
                     <Select.Option key={x.statusId} value={x.statusId}>
-                      {x.statusName}
+                      {x.statusCode === "paid"
+                        ? t("common.paid")
+                        : x.statusCode === "not_paid"
+                        ? t("common.notPaid")
+                        : x.statusCode === "created"
+                        ? t("common.created")
+                        : null}
                     </Select.Option>
                   ))}
                 </Select>

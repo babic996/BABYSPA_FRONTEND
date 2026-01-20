@@ -119,7 +119,10 @@ const ReservationModalContent = ({
                       <div style={{ marginBottom: 8 }}>
                         {t("table.emptyTable")}
                       </div>
-                      <Button type="link" onClick={onOpenArrangementModalInline}>
+                      <Button
+                        type="link"
+                        onClick={onOpenArrangementModalInline}
+                      >
                         {t("button.addArrangement")}
                       </Button>
                     </div>
@@ -162,9 +165,7 @@ const ReservationModalContent = ({
                       onClose={() => setVisible(false)}
                       onConfirm={(date) => {
                         onChange(
-                          date
-                            ? dayjs(date).format("YYYY-MM-DDTHH:mm:ss")
-                            : ""
+                          date ? dayjs(date).format("YYYY-MM-DDTHH:mm:ss") : ""
                         );
                         setVisible(false);
                       }}
@@ -242,9 +243,8 @@ const ReservationModalContent = ({
                       key={x.statusId}
                       value={x.statusId}
                       style={
-                        status?.find(
-                          (s) => s.statusCode === "term_canceled"
-                        )?.statusId == x.statusId
+                        status?.find((s) => s.statusCode === "term_canceled")
+                          ?.statusId == x.statusId
                           ? { color: "red" }
                           : {}
                       }
@@ -321,4 +321,3 @@ const ReservationModalContent = ({
 };
 
 export default ReservationModalContent;
-
