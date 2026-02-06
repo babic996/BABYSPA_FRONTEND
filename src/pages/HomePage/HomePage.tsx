@@ -1,6 +1,6 @@
 import { Button, Modal, Row, Col, Tag, Space, Popover } from "antd";
 import "./HomePage.scss";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   CreateOrUpdateReservationInterface,
   DataStateReservation,
@@ -30,7 +30,6 @@ import { handleApiError } from "../../util/const";
 import AddButton from "../../components/ButtonComponents/AddButton";
 import useMediaQuery from "../../hooks/useMediaQuery";
 import useUpdateEffect from "../../hooks/useUpdateEffect";
-import TableComponent from "./TableComponent";
 import { useFilter } from "../../context/Filter/useFilter";
 import { FaInfoCircle } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
@@ -51,6 +50,8 @@ import { getServicePackagesList } from "../../services/ServicePackageService";
 import { getDiscountList } from "../../services/DiscountService";
 import { getPaymentTypeList } from "../../services/PaymentTypeService";
 import ReservationModalContent from "../../components/ReservationModalContent/ReservationModalContent";
+
+const TableComponent = lazy(() => import("./TableComponent"));
 
 const HomePage = () => {
   const isModalOpen = useRef<boolean>(false);
@@ -131,7 +132,7 @@ const HomePage = () => {
   const arrangementSchema = getArrangementValidationSchema(
     isEditArrangementInline,
     dropdownData.paymentTypes,
-    t
+    t,
   );
 
   const {
@@ -205,7 +206,7 @@ const HomePage = () => {
     const fetchData = async () => {
       try {
         const reservationsRes = await getReservationsList(
-          abortController.signal
+          abortController.signal,
         );
         setReservations(reservationsRes);
       } catch (e) {
@@ -233,7 +234,7 @@ const HomePage = () => {
         const result = await getReservationsTable(
           dataState.cursor - 1,
           filter,
-          abortController.signal
+          abortController.signal,
         );
         setDataState((prev) => ({
           ...prev,
@@ -281,7 +282,7 @@ const HomePage = () => {
 
       const resultTableView = await getReservationsTable(
         dataState.cursor - 1,
-        null
+        null,
       );
 
       setDataState((prev) => ({
@@ -394,7 +395,7 @@ const HomePage = () => {
   };
 
   const onSubmit: SubmitHandler<CreateOrUpdateReservationInterface> = async (
-    data
+    data,
   ) => {
     setLoading(true);
     if (isEditReservation) {
@@ -404,15 +405,15 @@ const HomePage = () => {
           prev.map((item) =>
             item.reservationId === data.reservationId
               ? { ...item, ...res.data.data }
-              : item
-          )
+              : item,
+          ),
         );
         setDataState((prev) => ({
           ...prev,
           reservations: prev.reservations.map((item) =>
             item.reservationId === data.reservationId
               ? { ...item, ...res.data.data }
-              : item
+              : item,
           ),
         }));
         isModalOpen.current = false;
@@ -434,7 +435,7 @@ const HomePage = () => {
 
         const resultTableView = await getReservationsTable(
           dataState.cursor - 1,
-          null
+          null,
         );
 
         setDataState((prev) => ({
@@ -596,22 +597,24 @@ const HomePage = () => {
                       ? t("button.table")
                       : t("button.tableLong")
                     : isMobile
-                    ? t("button.calendar")
-                    : t("button.calendarLong")}
+                      ? t("button.calendar")
+                      : t("button.calendarLong")}
                 </Button>
               </Col>
             </Row>
 
             <div className="calendar-wrapper">
               {isTableView && (
-                <TableComponent
-                  isMobile={isMobile}
-                  handleDelete={handleDelete}
-                  handleEdit={handleEdit}
-                  dataState={dataState}
-                  nextPage={nextPage}
-                  t={t}
-                />
+                <Suspense fallback={<FullPageSpiner />}>
+                  <TableComponent
+                    isMobile={isMobile}
+                    handleDelete={handleDelete}
+                    handleEdit={handleEdit}
+                    dataState={dataState}
+                    nextPage={nextPage}
+                    t={t}
+                  />
+                </Suspense>
               )}
               {!isTableView && (
                 <ResponsiveCalendarWrapper

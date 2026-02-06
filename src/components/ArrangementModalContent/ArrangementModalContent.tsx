@@ -65,7 +65,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
 }) => {
   const { onResetFilter } = useFilter();
   const onSubmit: SubmitHandler<CreateOrUpdateArrangementInterface> = async (
-    data
+    data,
   ) => {
     setDataState((prev) => ({ ...prev, loading: true }));
     try {
@@ -79,7 +79,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
         } else {
           const res = await editArrangement(data);
           const oldItem = dataState.arrangements.find(
-            (item) => item.arrangementId === data.arrangementId
+            (item) => item.arrangementId === data.arrangementId,
           );
           const oldPrice = oldItem?.price || 0;
           const newPrice = res.data.data?.price || 0;
@@ -88,7 +88,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
             arrangements: prev.arrangements.map((item) =>
               item.arrangementId === data.arrangementId
                 ? { ...item, ...res.data.data }
-                : item
+                : item,
             ),
             totalSum: prev.totalSum - oldPrice + newPrice,
           }));
@@ -253,7 +253,7 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
                   onChange={(value) => {
                     field.onChange(value);
                     const selectedStatus = dropdownData.status.find(
-                      (x) => x.statusId === value
+                      (x) => x.statusId === value,
                     );
                     if (
                       selectedStatus?.statusCode === "created" ||
@@ -271,10 +271,10 @@ const ArrangementModalContent: React.FC<ArrangementModalContentProps> = ({
                       {x.statusCode === "paid"
                         ? t("common.paid")
                         : x.statusCode === "not_paid"
-                        ? t("common.notPaid")
-                        : x.statusCode === "created"
-                        ? t("common.created")
-                        : null}
+                          ? t("common.notPaid")
+                          : x.statusCode === "created"
+                            ? t("common.created")
+                            : null}
                     </Select.Option>
                   ))}
                 </Select>

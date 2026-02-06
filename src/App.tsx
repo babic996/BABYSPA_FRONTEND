@@ -125,7 +125,10 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
-                  <Route path="not-authorized" element={<NotAuthorizedPage />} />
+                  <Route
+                    path="not-authorized"
+                    element={<NotAuthorizedPage />}
+                  />
                   <Route path="*" element={<PageNotFound />} />
                 </Route>
               </Routes>

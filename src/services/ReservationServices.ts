@@ -1,13 +1,20 @@
 import { baseRequest } from "../util/useAxios";
 import { DEFAULT_PAGE_SIZE } from "../util/const";
+import { buildQueryParams } from "../util/queryParamsBuilder";
 import { CreateOrUpdateReservationInterface } from "../interfaces/ReservationInterface";
 import { FilterInterface } from "../interfaces/FilterInterface";
 
 export const getReservations = async (cursor: number | null) => {
   const request = baseRequest();
 
+  const params = new URLSearchParams();
+  if (cursor !== null) {
+    params.set("page", String(cursor));
+  }
+  params.set("size", String(DEFAULT_PAGE_SIZE));
+
   const result = await request({
-    url: `/reservation/find-all?page=${cursor}&size=${DEFAULT_PAGE_SIZE}`,
+    url: `/reservation/find-all?${params.toString()}`,
     method: "get",
   });
 
@@ -17,32 +24,14 @@ export const getReservations = async (cursor: number | null) => {
 export const getReservationsTable = async (
   cursor: number | null,
   filter: FilterInterface | null,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ) => {
   const request = baseRequest();
 
-  const params = new URLSearchParams();
-
-  params.set("size", String(DEFAULT_PAGE_SIZE));
-  if (cursor !== null) {
-    params.set("page", String(cursor));
-  }
-
-  if (filter?.statusId) {
-    params.append("statusId", filter.statusId.toString());
-  }
-
-  if (filter?.arrangementId) {
-    params.append("arrangementId", filter.arrangementId.toString());
-  }
-
-  if (filter?.startRangeDate) {
-    params.append("startRangeDate", filter.startRangeDate.toString());
-  }
-
-  if (filter?.endRangeDate) {
-    params.append("endRangeDate", filter.endRangeDate.toString());
-  }
+  const params = buildQueryParams(filter, {
+    page: cursor,
+    size: DEFAULT_PAGE_SIZE,
+  });
 
   const result = await request({
     url: `/reservation/find-all?${params.toString()}`,
@@ -68,8 +57,11 @@ export const getReservationsList = async (signal?: AbortSignal) => {
 export const existsByArrangement = async (arrangementId: number) => {
   const request = baseRequest();
 
+  const params = new URLSearchParams();
+  params.set("arrangementId", String(arrangementId));
+
   const result = await request({
-    url: `/reservation/exists-by-arrangement?arrangementId=${arrangementId}`,
+    url: `/reservation/exists-by-arrangement?${params.toString()}`,
     method: "get",
   });
 
@@ -79,8 +71,11 @@ export const existsByArrangement = async (arrangementId: number) => {
 export const getReservationsByArrangement = async (arrangementId: number) => {
   const request = baseRequest();
 
+  const params = new URLSearchParams();
+  params.set("arrangementId", String(arrangementId));
+
   const result = await request({
-    url: `/reservation/find-by-arrangement-id?arrangementId=${arrangementId}`,
+    url: `/reservation/find-by-arrangement-id?${params.toString()}`,
     method: "get",
   });
 
@@ -102,8 +97,11 @@ export const editReservation = (data: CreateOrUpdateReservationInterface) => {
 export const deleteReservation = (reservationId: number) => {
   const request = baseRequest();
 
+  const params = new URLSearchParams();
+  params.set("reservationId", String(reservationId));
+
   return request({
-    url: `/reservation/delete?reservationId=${reservationId}`,
+    url: `/reservation/delete?${params.toString()}`,
     method: "delete",
   });
 };

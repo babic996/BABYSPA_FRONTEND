@@ -57,7 +57,7 @@ const BabyPage = () => {
         const result = await getBabies(
           dataState.cursor - 1,
           filter,
-          abortController.signal
+          abortController.signal,
         );
         setDataState((prev) => ({
           ...prev,

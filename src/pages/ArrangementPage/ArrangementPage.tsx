@@ -61,7 +61,7 @@ const ArrangementPage = () => {
   const schema = getArrangementValidationSchema(
     isEditArrangement,
     dropdownData.paymentTypes,
-    t
+    t,
   );
   const { filter, showFilters, setShowFilters, onResetFilter } = useFilter();
   const [canFetch, setCanFetch] = useState<boolean>(false);

@@ -1,22 +1,21 @@
 import { FilterInterface } from "../interfaces/FilterInterface";
 import { GiftCardInterface } from "../interfaces/GiftCardInterface";
 import { DEFAULT_PAGE_SIZE } from "../util/const";
+import {
+  buildQueryParams,
+  buildCustomParams,
+} from "../util/queryParamsBuilder";
 import { baseRequest } from "../util/useAxios";
 
 export const getGiftCardList = async (
   isUsed: boolean | null,
-  arrangementId: number | null | undefined
+  arrangementId: number | null | undefined,
 ) => {
   const request = baseRequest();
-  const queryParams = new URLSearchParams();
-
-  if (isUsed !== null) {
-    queryParams.append("isUsed", String(isUsed));
-  }
-
-  if (arrangementId !== null && arrangementId !== undefined) {
-    queryParams.append("arrangementId", String(arrangementId));
-  }
+  const queryParams = buildCustomParams({
+    isUsed: isUsed !== null ? isUsed : undefined,
+    arrangementId: arrangementId ?? undefined,
+  });
 
   const result = await request({
     url: `/gift-card/find-all-list?${queryParams.toString()}`,
@@ -41,34 +40,28 @@ export const editGiftCard = (data: GiftCardInterface) => {
 export const deleteGiftCard = (giftCardId: number) => {
   const request = baseRequest();
 
+  const params = new URLSearchParams();
+  params.set("giftCardId", String(giftCardId));
+
   return request({
-    url: `/gift-card/delete?giftCardId=${giftCardId}`,
+    url: `/gift-card/delete?${params.toString()}`,
     method: "delete",
   });
 };
 
 export const getGiftCards = async (
   cursor: number | null,
-  filter: FilterInterface | null
+  filter: FilterInterface | null,
 ) => {
   const request = baseRequest();
 
-  let filterString = "";
-
-  if (filter?.searchText) {
-    filterString += `&serialNumber=${filter?.searchText}`;
-  }
-
-  if (filter?.startRangeDate) {
-    filterString += `&startRangeDate=${filter.startRangeDate}`;
-  }
-
-  if (filter?.endRangeDate) {
-    filterString += `&endRangeDate=${filter.endRangeDate}`;
-  }
+  const params = buildQueryParams(filter, {
+    page: cursor,
+    size: DEFAULT_PAGE_SIZE,
+  });
 
   const result = await request({
-    url: `/gift-card/find-all?page=${cursor}&size=${DEFAULT_PAGE_SIZE}${filterString}`,
+    url: `/gift-card/find-all?${params.toString()}`,
     method: "get",
   });
 

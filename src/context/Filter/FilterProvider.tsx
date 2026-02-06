@@ -13,7 +13,7 @@ interface FilterContextType {
 }
 
 export const FilterContext = createContext<FilterContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export const FilterProvider: React.FC<{ children: ReactNode }> = ({

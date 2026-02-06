@@ -1,35 +1,23 @@
 import { baseRequest } from "../util/useAxios";
 import { DEFAULT_PAGE_SIZE } from "../util/const";
+import { buildQueryParams } from "../util/queryParamsBuilder";
 import { BabyInterface } from "../interfaces/BabyInterface";
 import { FilterInterface } from "../interfaces/FilterInterface";
 
 export const getBabies = async (
   cursor: number | null,
   filter: FilterInterface | null,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ) => {
   const request = baseRequest();
 
-  let filterString = "";
-
-  if (filter?.searchText) {
-    const searchText = filter.searchText.startsWith("+")
-      ? filter.searchText.slice(1)
-      : filter.searchText;
-
-    filterString += `&searchText=${searchText}`;
-  }
-
-  if (filter?.startRangeDate) {
-    filterString += `&startRangeDate=${filter.startRangeDate}`;
-  }
-
-  if (filter?.endRangeDate) {
-    filterString += `&endRangeDate=${filter.endRangeDate}`;
-  }
+  const params = buildQueryParams(filter, {
+    page: cursor,
+    size: DEFAULT_PAGE_SIZE,
+  });
 
   const result = await request({
-    url: `/baby/find-all?page=${cursor}&size=${DEFAULT_PAGE_SIZE}${filterString}`,
+    url: `/baby/find-all?${params.toString()}`,
     method: "get",
     signal,
   });
@@ -63,8 +51,11 @@ export const editBaby = (data: BabyInterface) => {
 export const deleteBaby = (babyId: number) => {
   const request = baseRequest();
 
+  const params = new URLSearchParams();
+  params.set("babyId", String(babyId));
+
   return request({
-    url: `/baby/delete?babyId=${babyId}`,
+    url: `/baby/delete?${params.toString()}`,
     method: "delete",
   });
 };

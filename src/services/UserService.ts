@@ -25,8 +25,11 @@ export const registerUser = (data: RegisterUserInterface) => {
 export const getUserInfoByUserId = async (userId: number) => {
   const request = baseRequest();
 
+  const params = new URLSearchParams();
+  params.set("userId", String(userId));
+
   const result = await request({
-    url: `/user/find-user-info-by-id?userId=${userId}`,
+    url: `/user/find-user-info-by-id?${params.toString()}`,
     method: "get",
   });
 
@@ -40,7 +43,7 @@ export const getUsersInfo = async (excludedRoleNames: string[] | null) => {
 
   if (excludedRoleNames && excludedRoleNames?.length > 0) {
     excludedRoleNames.forEach((excludedRoleName: string) =>
-      params.append("excludedRoleNames[]", excludedRoleName)
+      params.append("excludedRoleNames[]", excludedRoleName),
     );
   }
 
